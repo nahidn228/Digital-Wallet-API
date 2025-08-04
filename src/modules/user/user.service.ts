@@ -18,28 +18,27 @@ const getUserByEmailFromDB = async (payload: string) => {
   return data;
 };
 
-// const getAllMangoFromDB = async () => {
-//   const data = await Mango.find();
 
-//   return data;
-// };
+const updateUserFromDB = async (email: string, payload: Partial<IUser>) => {
+  const data = await User.findOneAndUpdate({ email }, payload, {
+    new: true,
+    runValidators: true,
+  });
+  return data;
+};
 
-// const updateMangoByIdFromDB = async (mangoId: string, payload: any) => {
-//   const data = await Mango.findByIdAndUpdate(mangoId, payload, {
-//     new: true,
-//     runValidators: true,
-//   });
 
-//   return data;
-// };
-// const deleteMangoByIdFromDB = async (mangoId: string) => {
-//   const data = await Mango.findByIdAndDelete(mangoId);
 
-//   return data;
-// };
+const deleteUserByIdFromDB = async (userId: string) => {
+  const data = await User.findByIdAndDelete(userId);
+  return data;
+};
+
 
 export const UserServices = {
   createUserIntoDB,
   getUserFromDB,
   getUserByEmailFromDB,
+  updateUserFromDB,
+  deleteUserByIdFromDB,
 };

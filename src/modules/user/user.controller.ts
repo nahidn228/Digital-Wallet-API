@@ -37,4 +37,26 @@ const getSingleUsers = async (req: Request, res: Response) => {
   });
 };
 
-export { registerUser, getUsers, getSingleUsers };
+const updateUser = async (req: Request, res: Response) => {
+  const email = req.params.email;
+  const payload = req.body;
+  const data = await UserServices.updateUserFromDB(email, payload);
+  res.send({
+    success: true,
+    message: "User Updated successfully",
+    data,
+  });
+};
+
+const deleteUser = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const data = await UserServices.deleteUserByIdFromDB(userId);
+
+  res.send({
+    success: true,
+    message: "User Deleted successfully",
+    data,
+  });
+};
+
+export { registerUser, getUsers, getSingleUsers, updateUser, deleteUser };

@@ -70,9 +70,11 @@ const userSchema = new Schema<IUser>(
     },
     isVerified: {
       type: Boolean,
+      default: false,
     },
     isActive: {
       type: Boolean,
+      default: false,
     },
   },
   { timestamps: true, versionKey: false }
