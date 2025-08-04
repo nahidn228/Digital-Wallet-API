@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUsers, registerUser } from "./user.controller";
+import { getSingleUsers, getUsers, registerUser } from "./user.controller";
 import { UserZodSchema } from "./user.validate";
 import { validateRequest } from "../../middleware/validateRequest";
 
@@ -10,6 +10,7 @@ userRouts.post(
   validateRequest(UserZodSchema.UserCreateZodSchema),
   registerUser
 );
+userRouts.get("/:email", getSingleUsers);
 userRouts.get("/", getUsers);
 
 export default userRouts;
