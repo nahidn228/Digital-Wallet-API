@@ -1,12 +1,14 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
 
 import AppError from "../error/AppError";
 import status from "http-status";
 import config from "../config";
+import User from "../modules/user/user.model";
 
 export const auth =
-  (role: string) => async (req: Request, res: Response, next: NextFunction) => {
+  (role: string[]) =>
+  async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization;
 
     if (!token) {
@@ -16,9 +18,19 @@ export const auth =
     const isVerifiedToken = jwt.verify(
       token,
       config.JWT_ACCESS_SECRET as string
-    );
+    ) as JwtPayload;
 
-    console.log(isVerifiedToken);
+    // console.log(isVerifiedToken);
+
+    const isUserExist = User.findOne({ email: isVerifiedToken.email });
+
+    if (!isUserExist) {
+      throw new AppError(status.UNAUTHORIZED, "User Not Found", "");
+    }
+
+    if (!role.includes(isVerifiedToken.role)) {
+      throw new AppError(status.UNAUTHORIZED, "Unauthorized access", "");
+    }
 
     next();
   };
