@@ -11,7 +11,7 @@ app.use("/api", routes);
 app.get("/", (req: Request, res: Response) => {
   res.send({
     success: true,
-    message: "Mango is here",
+    message: "Digital Wallet API is Running",
   });
 });
 

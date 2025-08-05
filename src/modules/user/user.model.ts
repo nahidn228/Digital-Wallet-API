@@ -38,15 +38,15 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: true,
-      validate: {
-        validator: function (value) {
-          return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-            value
-          );
-        },
-        message: (props) =>
-          `${props.value} is too week. Use At least 1 uppercase (A-Z), 1 lowercase letter (a-z), 1 digit (0-9), 1 special character (@ $ ! % * ? &) and Minimum 8 characters`,
-      },
+      // validate: {
+      //   validator: function (value) {
+      //     return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+      //       value
+      //     );
+      //   },
+      //   message: (props) =>
+      //     `${props.value} is too week. Use At least 1 uppercase (A-Z), 1 lowercase letter (a-z), 1 digit (0-9), 1 special character (@ $ ! % * ? &) and Minimum 8 characters`,
+      // },
     },
     role: {
       type: String,

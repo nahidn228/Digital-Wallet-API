@@ -10,15 +10,25 @@ import { sendResponse } from "../../utils/SendResponse";
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
 
-  // const error = await UserZodSchema.UserCreateZodSchema.parseAsync(payload);
-  // console.log({ error });
-
   const data = await UserServices.createUserIntoDB(payload);
 
   sendResponse(res, {
     statusCode: status.CREATED,
     success: true,
     message: "User registered successfully",
+    data: data,
+  });
+});
+
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+
+  const data = await UserServices.loginUserIntoDB(payload);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "User Login successfully",
     data: data,
   });
 });
@@ -70,4 +80,11 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { registerUser, getUsers, getSingleUsers, updateUser, deleteUser };
+export {
+  registerUser,
+  loginUser,
+  getUsers,
+  getSingleUsers,
+  updateUser,
+  deleteUser,
+};

@@ -1,7 +1,7 @@
 import z from "zod";
 import { UserRole } from "./user.constrain";
 
-const UserCreateZodSchema = z.object({
+const createUserZodSchema = z.object({
   name: z
     .string()
     .min(3, "Name must be minimum 3 character")
@@ -43,7 +43,13 @@ const UserCreateZodSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const UserZodSchema = {
-  UserCreateZodSchema,
-};
+const loginUserZodSchema = z.object({
+  email: z.email({ error: "please enter a valid email" }),
 
+  password: z.string(),
+});
+
+export const UserZodSchema = {
+  createUserZodSchema,
+  loginUserZodSchema,
+};

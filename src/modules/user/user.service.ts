@@ -1,12 +1,42 @@
 import { Request, Response } from "express";
 import User from "./user.model";
 import { IUser } from "./user.interface";
+import bcrypt from "bcryptjs";
+import config from "../../config";
+import AppError from "../../error/AppError";
+import status from "http-status";
 
 const createUserIntoDB = async (payload: IUser) => {
   // const user = new User(payload);
+  payload.password = await bcrypt.hash(
+    payload.password,
+    Number(config.BCRYPT_SALT_ROUND)
+  );
   const data = await User.create(payload);
   return data;
 };
+
+const loginUserIntoDB = async (payload: IUser) => {
+  const isUserExist = await User.findOne({ email: payload.email });
+  if (!isUserExist) {
+    throw new AppError(status.UNAUTHORIZED, "User Not Found", ""); //status_code, message, stack
+  }
+
+  const checkPassword = await bcrypt.compare(
+    payload.password,
+    isUserExist.password
+  );
+
+  if (!checkPassword) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "Email and password are not Matched",
+      ""
+    );
+  }
+  return isUserExist;
+};
+
 const getUserFromDB = async () => {
   const data = await User.find();
   return data;
@@ -18,7 +48,6 @@ const getUserByEmailFromDB = async (payload: string) => {
   return data;
 };
 
-
 const updateUserFromDB = async (email: string, payload: Partial<IUser>) => {
   const data = await User.findOneAndUpdate({ email }, payload, {
     new: true,
@@ -27,16 +56,14 @@ const updateUserFromDB = async (email: string, payload: Partial<IUser>) => {
   return data;
 };
 
-
-
 const deleteUserByIdFromDB = async (userId: string) => {
   const data = await User.findByIdAndDelete(userId);
   return data;
 };
 
-
 export const UserServices = {
   createUserIntoDB,
+  loginUserIntoDB,
   getUserFromDB,
   getUserByEmailFromDB,
   updateUserFromDB,
