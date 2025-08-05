@@ -9,6 +9,7 @@ import {
 } from "./user.controller";
 import { UserZodSchema } from "./user.validate";
 import { validateRequest } from "../../middleware/validateRequest";
+import { auth } from "../../middleware/auth";
 
 const userRouts = Router();
 
@@ -19,6 +20,7 @@ userRouts.post(
 );
 userRouts.post(
   "/login",
+  auth("User"),
   validateRequest(UserZodSchema.loginUserZodSchema),
   loginUser
 );
@@ -26,6 +28,6 @@ userRouts.post(
 userRouts.get("/:email", getSingleUsers);
 userRouts.patch("/:email", updateUser);
 userRouts.delete("/:userId", deleteUser);
-userRouts.get("/", getUsers);
+userRouts.get("/", auth("User"), getUsers);
 
 export default userRouts;

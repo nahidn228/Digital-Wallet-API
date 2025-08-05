@@ -5,9 +5,9 @@ import bcrypt from "bcryptjs";
 import config from "../../config";
 import AppError from "../../error/AppError";
 import status from "http-status";
+import jwt from "jsonwebtoken";
 
 const createUserIntoDB = async (payload: IUser) => {
-  // const user = new User(payload);
   payload.password = await bcrypt.hash(
     payload.password,
     Number(config.BCRYPT_SALT_ROUND)
@@ -34,7 +34,17 @@ const loginUserIntoDB = async (payload: IUser) => {
       ""
     );
   }
-  return isUserExist;
+
+  const jwtPayload = {
+    email: payload.email,
+    role: isUserExist.role,
+  };
+
+  const accessToken = jwt.sign(jwtPayload, config.JWT_ACCESS_SECRET as string, {
+    expiresIn: "7d",
+  });
+
+  return accessToken;
 };
 
 const getUserFromDB = async () => {
