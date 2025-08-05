@@ -46,3 +46,4 @@ const UserCreateZodSchema = z.object({
 export const UserZodSchema = {
   UserCreateZodSchema,
 };
+
