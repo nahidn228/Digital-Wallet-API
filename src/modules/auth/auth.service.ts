@@ -1,10 +1,10 @@
-import  status  from 'http-status';
-import  bcrypt  from 'bcryptjs';
+import status from "http-status";
+import bcrypt from "bcryptjs";
 import config from "../../config";
 import { IUser } from "../user/user.interface";
-import User from '../user/user.model';
-import AppError from '../../error/AppError';
-import  jwt  from 'jsonwebtoken';
+import User from "../user/user.model";
+import AppError from "../../error/AppError";
+import jwt from "jsonwebtoken";
 
 const createUserIntoDB = async (payload: IUser) => {
   payload.password = await bcrypt.hash(
@@ -46,10 +46,38 @@ const loginUserIntoDB = async (payload: IUser) => {
   return accessToken;
 };
 
+const changePasswordIntoDB = async (
+  email: string,
+  newPassword: string,
+  oldPassword: string
+) => {
+  const isUserExist = await User.findOne({ email });
 
+  if (!isUserExist) {
+    throw new AppError(status.NOT_FOUND, "User Not Found", "");
+  }
+
+  const storedPassword = isUserExist.password;
+  const isPasswordMatched = bcrypt.compare(oldPassword, storedPassword);
+
+  if (!isPasswordMatched) {
+    throw new AppError(Number(status[403]), "Password Not Matched", "");
+  }
+
+  isUserExist.password = await bcrypt.hash(
+    newPassword,
+    Number(config.BCRYPT_SALT_ROUND)
+  );
+
+  //save password
+
+  await isUserExist.save();
+
+  return isUserExist;
+};
 
 export const AuthServices = {
   createUserIntoDB,
   loginUserIntoDB,
- 
+  changePasswordIntoDB,
 };

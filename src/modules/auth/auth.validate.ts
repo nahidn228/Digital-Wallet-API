@@ -50,7 +50,16 @@ const loginUserZodSchema = z.object({
   password: z.string(),
 });
 
-export const UserZodSchema = {
+const changePasswordZodSchema = z.object({
+  email: z.email({ error: "please enter a valid email" }),
+  oldPassword: z.string(),
+  newPassword: z.string(),
+});
+
+
+
+export const AuthZodSchema = {
   createUserZodSchema,
   loginUserZodSchema,
+  changePasswordZodSchema
 };
