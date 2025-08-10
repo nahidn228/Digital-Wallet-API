@@ -11,12 +11,11 @@ export interface IUser {
   nid?: string;
   address?: string;
   dateOfBirth?: Date;
-  isVerified: boolean;
-  isActive: boolean;
+  isVerified?: boolean;
+  isActive?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
-
 
 export interface IUserProfile {
   _id?: string;

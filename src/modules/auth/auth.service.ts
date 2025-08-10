@@ -57,7 +57,7 @@ const changePasswordIntoDB = async (
     throw new AppError(status.NOT_FOUND, "User Not Found", "");
   }
 
-  const storedPassword = isUserExist.password;
+  const storedPassword = await isUserExist.password;
   const isPasswordMatched = bcrypt.compare(oldPassword, storedPassword);
 
   if (!isPasswordMatched) {
@@ -76,8 +76,34 @@ const changePasswordIntoDB = async (
   return isUserExist;
 };
 
+const resetPasswordIntoDB = async (email: string, phone: string, password:string) => {
+  const isUserExist = await User.findOne({ email });
+
+  if (!isUserExist) {
+    throw new AppError(status.NOT_FOUND, "User Not Found", "");
+  }
+  const checkPhoneNumber = isUserExist.phone === phone;
+
+  if (!checkPhoneNumber) {
+    throw new AppError(status.NOT_FOUND, "Wrong Phone Number", "");
+  }
+
+    isUserExist.password = await bcrypt.hash(
+    password,
+    Number(config.BCRYPT_SALT_ROUND)
+  );
+
+  //save password
+
+  await isUserExist.save();
+
+  return isUserExist;
+};
+
 export const AuthServices = {
   createUserIntoDB,
   loginUserIntoDB,
   changePasswordIntoDB,
+  resetPasswordIntoDB,
+
 };

@@ -31,7 +31,8 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const changePassword = catchAsync(async (req: Request, res: Response) => {
-  const { email, newPassword, oldPassword } = req.body;
+  const { email } = req.user;
+  const { newPassword, oldPassword } = req.body;
   const data = await AuthServices.changePasswordIntoDB(
     email,
     newPassword,
@@ -46,4 +47,16 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { registerUser, loginUser, changePassword };
+const resetpassword = catchAsync(async (req: Request, res: Response) => {
+  const { email, phone, password } = req.body;
+  const data = await AuthServices.resetPasswordIntoDB(email, phone, password);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Password Reset successfully",
+    data: data,
+  });
+});
+
+export { registerUser, loginUser, changePassword, resetpassword };

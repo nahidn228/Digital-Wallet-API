@@ -1,7 +1,14 @@
+import { auth } from "./../../middleware/auth";
 import { Router } from "express";
 import { validateRequest } from "../../middleware/validateRequest";
-import { changePassword, loginUser, registerUser } from "./auth.controller";
+import {
+  changePassword,
+  loginUser,
+  registerUser,
+  resetpassword,
+} from "./auth.controller";
 import { AuthZodSchema } from "./auth.validate";
+import { UserRole } from "../user/user.constrain";
 
 const authRouts = Router();
 
@@ -18,8 +25,10 @@ authRouts.post(
 );
 authRouts.post(
   "/changePassword",
+  auth(Object.values(UserRole)),
   validateRequest(AuthZodSchema.changePasswordZodSchema),
   changePassword
 );
+authRouts.post("/resetPassword", auth(Object.values(UserRole)), resetpassword);
 
 export default authRouts;

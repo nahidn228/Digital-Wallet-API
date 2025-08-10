@@ -22,7 +22,7 @@ export const auth =
 
     // console.log(isVerifiedToken);
 
-    const isUserExist = User.findOne({ email: isVerifiedToken.email });
+    const isUserExist = await User.findOne({ email: isVerifiedToken.email });
 
     if (!isUserExist) {
       throw new AppError(status.UNAUTHORIZED, "User Not Found", "");
@@ -31,6 +31,8 @@ export const auth =
     if (!role.includes(isVerifiedToken.role)) {
       throw new AppError(status.UNAUTHORIZED, "Unauthorized access", "");
     }
+
+    req.user = isUserExist;
 
     next();
   };

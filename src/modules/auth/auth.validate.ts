@@ -1,7 +1,6 @@
 import z from "zod";
 import { UserRole } from "../user/user.constrain";
 
-
 const createUserZodSchema = z.object({
   name: z
     .string()
@@ -51,7 +50,6 @@ const loginUserZodSchema = z.object({
 });
 
 const changePasswordZodSchema = z.object({
-  email: z.email({ error: "please enter a valid email" }),
   oldPassword: z.string(),
   newPassword: z.string(),
 });
@@ -61,5 +59,5 @@ const changePasswordZodSchema = z.object({
 export const AuthZodSchema = {
   createUserZodSchema,
   loginUserZodSchema,
-  changePasswordZodSchema
+  changePasswordZodSchema,
 };
