@@ -4,7 +4,7 @@ import config from "../../config";
 import { IUser } from "../user/user.interface";
 import User from "../user/user.model";
 import AppError from "../../error/AppError";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 
 const createUserIntoDB = async (payload: IUser) => {
   payload.password = await bcrypt.hash(
@@ -39,9 +39,20 @@ const loginUserIntoDB = async (payload: IUser) => {
     role: isUserExist.role,
   };
 
-  const accessToken = jwt.sign(jwtPayload, config.JWT_ACCESS_SECRET as string, {
-    expiresIn: "7d",
-  });
+  const accessToken = jwt.sign(
+    jwtPayload,
+    config.JWT_ACCESS_SECRET as string,
+    {
+      expiresIn: config.JWT_ACCESS_EXPIRES,
+    } as SignOptions
+  );
+  const refreshToken = jwt.sign(
+    jwtPayload,
+    config.JWT_REFRESH_SECRET as string,
+    {
+      expiresIn: config.JWT_REFRESH_EXPIRES,
+    } as SignOptions
+  );
 
   return accessToken;
 };
@@ -73,10 +84,16 @@ const changePasswordIntoDB = async (
 
   await isUserExist.save();
 
-  return isUserExist;
+  const { password, ...rest } = isUserExist.toObject();
+
+  return rest;
 };
 
-const resetPasswordIntoDB = async (email: string, phone: string, password:string) => {
+const resetPasswordIntoDB = async (
+  email: string,
+  phone: string,
+  newPassword: string
+) => {
   const isUserExist = await User.findOne({ email });
 
   if (!isUserExist) {
@@ -88,16 +105,21 @@ const resetPasswordIntoDB = async (email: string, phone: string, password:string
     throw new AppError(status.NOT_FOUND, "Wrong Phone Number", "");
   }
 
-    isUserExist.password = await bcrypt.hash(
-    password,
+  isUserExist.password = await bcrypt.hash(
+    newPassword,
     Number(config.BCRYPT_SALT_ROUND)
   );
 
   //save password
 
   await isUserExist.save();
+  const { password, ...rest } = isUserExist.toObject();
 
-  return isUserExist;
+  return rest;
+};
+
+const refreshToken = async (token: string) => {
+  const verifyRefreshToken = jwt.verify(token, config.JWT_ACCESS_SECRET!);
 };
 
 export const AuthServices = {
@@ -105,5 +127,4 @@ export const AuthServices = {
   loginUserIntoDB,
   changePasswordIntoDB,
   resetPasswordIntoDB,
-
 };
