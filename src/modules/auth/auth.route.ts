@@ -4,6 +4,7 @@ import { validateRequest } from "../../middleware/validateRequest";
 import {
   changePassword,
   loginUser,
+  refreshToken,
   registerUser,
   resetpassword,
 } from "./auth.controller";
@@ -17,18 +18,22 @@ authRouts.post(
   validateRequest(AuthZodSchema.createUserZodSchema),
   registerUser
 );
+
 authRouts.post(
   "/login",
-
   validateRequest(AuthZodSchema.loginUserZodSchema),
   loginUser
 );
+
+authRouts.post("/refreshToken", refreshToken);
+
 authRouts.post(
   "/changePassword",
   auth(Object.values(UserRole)),
   validateRequest(AuthZodSchema.changePasswordZodSchema),
   changePassword
 );
+
 authRouts.post("/resetPassword", auth(Object.values(UserRole)), resetpassword);
 
 export default authRouts;

@@ -4,7 +4,7 @@ import config from "../../config";
 import { IUser } from "../user/user.interface";
 import User from "../user/user.model";
 import AppError from "../../error/AppError";
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
 const createUserIntoDB = async (payload: IUser) => {
   payload.password = await bcrypt.hash(
@@ -54,7 +54,7 @@ const loginUserIntoDB = async (payload: IUser) => {
     } as SignOptions
   );
 
-  return accessToken;
+  return { accessToken, refreshToken };
 };
 
 const changePasswordIntoDB = async (
@@ -118,8 +118,27 @@ const resetPasswordIntoDB = async (
   return rest;
 };
 
-const refreshToken = async (token: string) => {
-  const verifyRefreshToken = jwt.verify(token, config.JWT_ACCESS_SECRET!);
+const refreshTokenIntoDB = async (refreshToken: string) => {
+  const verifyRefreshToken = jwt.verify(
+    refreshToken,
+    config.JWT_ACCESS_SECRET!
+  ) as JwtPayload;
+
+  const isUserExist = await User.findOne({ email: verifyRefreshToken.email });
+  if (!isUserExist) {
+    throw new AppError(status.UNAUTHORIZED, "User Not Found", "");
+  }
+
+  const jwtPayload = {
+    email: isUserExist.email,
+    role: isUserExist.role,
+  };
+
+  const accessToken = jwt.sign(jwtPayload, config.JWT_ACCESS_EXPIRES!, {
+    expiresIn: config.JWT_ACCESS_EXPIRES,
+  } as SignOptions);
+
+  return accessToken;
 };
 
 export const AuthServices = {
@@ -127,4 +146,5 @@ export const AuthServices = {
   loginUserIntoDB,
   changePasswordIntoDB,
   resetPasswordIntoDB,
+  refreshTokenIntoDB,
 };

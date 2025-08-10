@@ -30,6 +30,19 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const refreshToken = req.body.refreshToken;
+
+  const data = await AuthServices.refreshTokenIntoDB(refreshToken);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "Token Refresh successfully",
+    data: data,
+  });
+});
+
 const changePassword = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.user;
   const { newPassword, oldPassword } = req.body;
@@ -59,4 +72,4 @@ const resetpassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { registerUser, loginUser, changePassword, resetpassword };
+export { registerUser, loginUser, changePassword, resetpassword, refreshToken };
