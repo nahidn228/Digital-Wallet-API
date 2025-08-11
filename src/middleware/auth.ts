@@ -9,7 +9,7 @@ import User from "../modules/user/user.model";
 export const auth =
   (role: string[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
+    const token = req.cookies.accessToken;
 
     if (!token) {
       throw new AppError(status.FORBIDDEN, "Unauthorized Access", "");

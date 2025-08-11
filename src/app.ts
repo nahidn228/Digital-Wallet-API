@@ -19,17 +19,26 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  const errorSources: { path: any; message: any }[] = [];
-  const errors = Object.values(err.errors);
+  let statusCode = 500;
+  let message = "Internal Server Error";
+  let errorSources: { path: any; message: any }[] = [];
 
-  errors.forEach((error) => {
-    errorSources.push({ path: error.path, message: error.message });
-  });
+  if (err.code === 11000) {
+    const duplicate = err.message.match(/"([^"]*)"/)[1];
+    message = `${duplicate} is already exist`;
+    // message = err.message.match(/"([^"]*)"/);
+  } else if (err.name === "ValidationError") {
+    const errors = Object.values(err.errors);
 
-  res.status(500).json({
+    errors.forEach((error) => {
+      errorSources.push({ path: error.path, message: error.message });
+    });
+  }
+  res.status(statusCode).json({
     success: false,
-    message: err.message || "Something went wrong",
+    message: message,
     error: errorSources,
+    errorDetails: err,
   });
 });
 

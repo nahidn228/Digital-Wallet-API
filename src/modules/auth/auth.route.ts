@@ -10,7 +10,7 @@ const authRouts = Router();
 
 authRouts.post(
   "/register",
-  // validateRequest(AuthZodSchema.createUserZodSchema),
+  validateRequest(AuthZodSchema.createUserZodSchema),
   authController.registerUser
 );
 
