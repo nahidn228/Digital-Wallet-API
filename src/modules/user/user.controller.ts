@@ -33,7 +33,6 @@ import { sendResponse } from "../../utils/SendResponse";
 //   });
 // });
 
-
 const getUsers = catchAsync(async (req: Request, res: Response) => {
   const data = await UserServices.getUserFromDB();
 
@@ -81,11 +80,4 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export {
-// loginUser,
-// registerUser,
-  getUsers,
-  getSingleUsers,
-  updateUser,
-  deleteUser,
-};
+export { getUsers, getSingleUsers, updateUser, deleteUser };
