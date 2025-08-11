@@ -1,11 +1,15 @@
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import express, { Application, NextFunction, Request, Response } from "express";
 import routes from "./modules/routes";
+
 
 const app: Application = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser())
+
 app.use("/api", routes);
 
 app.get("/", (req: Request, res: Response) => {

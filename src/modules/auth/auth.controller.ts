@@ -3,6 +3,7 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/SendResponse";
 import status from "http-status";
 import { AuthServices } from "./auth.service";
+import config from "../../config";
 
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -22,6 +23,16 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
   const data = await AuthServices.loginUserIntoDB(payload);
 
+  res.cookie("accessToken", data.accessToken, {
+    secure: config.node_env !== "development",
+    httpOnly: true,
+  });
+
+  res.cookie("refreshToken", data.refreshToken, {
+    secure: config.node_env !== "development",
+    httpOnly: true,
+  });
+
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
@@ -31,7 +42,8 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
-  const refreshToken = req.body.refreshToken;
+  
+  const refreshToken = req.cookies.refreshToken;
 
   const data = await AuthServices.refreshTokenIntoDB(refreshToken);
 

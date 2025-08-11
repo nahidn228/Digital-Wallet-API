@@ -68,8 +68,8 @@ const changePasswordIntoDB = async (
     throw new AppError(status.NOT_FOUND, "User Not Found", "");
   }
 
-  const storedPassword = await isUserExist.password;
-  const isPasswordMatched = bcrypt.compare(oldPassword, storedPassword);
+  const storedPassword = isUserExist.password;
+  const isPasswordMatched = await bcrypt.compare(oldPassword, storedPassword);
 
   if (!isPasswordMatched) {
     throw new AppError(Number(status[403]), "Password Not Matched", "");
@@ -121,7 +121,7 @@ const resetPasswordIntoDB = async (
 const refreshTokenIntoDB = async (refreshToken: string) => {
   const verifyRefreshToken = jwt.verify(
     refreshToken,
-    config.JWT_ACCESS_SECRET!
+    config.JWT_REFRESH_SECRET!
   ) as JwtPayload;
 
   const isUserExist = await User.findOne({ email: verifyRefreshToken.email });
@@ -134,11 +134,11 @@ const refreshTokenIntoDB = async (refreshToken: string) => {
     role: isUserExist.role,
   };
 
-  const accessToken = jwt.sign(jwtPayload, config.JWT_ACCESS_EXPIRES!, {
+  const accessToken = jwt.sign(jwtPayload, config.JWT_ACCESS_SECRET!, {
     expiresIn: config.JWT_ACCESS_EXPIRES,
   } as SignOptions);
 
-  return accessToken;
+  return { accessToken };
 };
 
 export const AuthServices = {
