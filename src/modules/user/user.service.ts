@@ -53,9 +53,13 @@ const getUserFromDB = async () => {
 };
 
 const getUserByEmailFromDB = async (payload: string) => {
-  const data = await User.findOne({ email: payload });
-  console.log(data);
-  return data;
+  const user = await User.findOne({ email: payload });
+
+  if (!user) {
+    throw new AppError(status.BAD_REQUEST, "User Doesn't Exist", "");
+  }
+
+  return user;
 };
 
 const updateUserFromDB = async (email: string, payload: Partial<IUser>) => {

@@ -6,6 +6,7 @@ import { UserZodSchema } from "./user.validate";
 import { UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/SendResponse";
+import AppError from "../../error/AppError";
 
 // const registerUser = catchAsync(async (req: Request, res: Response) => {
 //   const payload = req.body;
@@ -46,12 +47,16 @@ const getUsers = catchAsync(async (req: Request, res: Response) => {
 
 const getSingleUsers = catchAsync(async (req: Request, res: Response) => {
   const email = req.params.email;
-  const data = await UserServices.getUserByEmailFromDB(email);
+  const user = await UserServices.getUserByEmailFromDB(email);
+
+
+
+
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
     message: "User retrieved successfully",
-    data: data,
+    data: user,
   });
 });
 
