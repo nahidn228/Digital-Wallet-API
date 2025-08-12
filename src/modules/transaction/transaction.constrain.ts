@@ -1,16 +1,16 @@
-
-
 export enum TransactionType {
-  DEPOSIT = "deposit",
-  WITHDRAW = "withdraw",
-  TRANSFER = "transfer",
-  CASH_IN = "cash_in",
-  CASH_OUT = "cash_out"
+  DEPOSIT = "Deposit",
+  WITHDRAW = "Withdraw",
+  SEND_MONEY = "Send_money",
+  CASH_IN = "Cash_in",
+  CASH_OUT = "Cash_out",
+  REFUND = 'Refund'
 }
 
 export enum TransactionStatus {
-  PENDING = "pending",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  CANCELLED = "cancelled"
+  PENDING = "Pending",
+  COMPLETED = "Completed",
+  FAILED = "Failed",
+  CANCELLED = "Cancelled",
+  REVERSED = "Reversed",
 }
