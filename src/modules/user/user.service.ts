@@ -77,9 +77,14 @@ const deleteUserByIdFromDB = async (userId: string) => {
 };
 
 const getUserByIdFromDB = async (userId: string) => {
-  console.log(userId);
-  const data = await User.findById(userId);
-  return data;
+  // const data = await User.findById(userId);
+
+  const user = await User.findById(userId).populate({
+    path: "wallet",
+    select: "balance status -_id", // Only return specific fields
+  });
+
+  return user;
 };
 
 const updateUserStatusIntoDB = async (

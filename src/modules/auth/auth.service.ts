@@ -5,17 +5,27 @@ import { IUser } from "../user/user.interface";
 import User from "../user/user.model";
 import AppError from "../../error/AppError";
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
+import { ILoginCredentials, IRegisterData } from "./auth.interface";
+import Wallet from "../wallet/wallet.model";
 
-const createUserIntoDB = async (payload: IUser) => {
+const createUserIntoDB = async (payload: IRegisterData) => {
   payload.password = await bcrypt.hash(
     payload.password,
     Number(config.BCRYPT_SALT_ROUND)
   );
   const data = await User.create(payload);
+
+  const wallet = await Wallet.create({
+    userId: data?._id,
+    email: data?.email,
+    balance: 0,
+    status: "Active",
+  });
+
   return data;
 };
 
-const loginUserIntoDB = async (payload: IUser) => {
+const loginUserIntoDB = async (payload: ILoginCredentials) => {
   const isUserExist = await User.findOne({ email: payload.email });
   if (!isUserExist) {
     throw new AppError(status.UNAUTHORIZED, "User Not Found", ""); //status_code, message, stack

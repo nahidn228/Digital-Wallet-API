@@ -88,8 +88,11 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
 const getUserById = catchAsync(async (req: Request, res: Response) => {
   const userId = req.params.userId;
 
-  console.log(userId);
   const data = await UserServices.getUserByIdFromDB(userId);
+
+  if (!data) {
+    throw new AppError(404, "User not found", "");
+  }
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -104,7 +107,6 @@ const updateUserById = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
 
   const data = await UserServices.updateUserStatusIntoDB(userId, payload);
-  
 
   if (!data) {
     throw new AppError(status.NOT_FOUND, "User not found", "");
