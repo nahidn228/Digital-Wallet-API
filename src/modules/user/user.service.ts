@@ -82,8 +82,19 @@ const getUserByIdFromDB = async (userId: string) => {
   return data;
 };
 
-const updateUserStatusIntoDB = async (userId: string) => {
-  const data = await User.findOneAndUpdate({ _id: userId });
+const updateUserStatusIntoDB = async (
+  userId: string,
+  payload: Partial<IUser>
+) => {
+  // const data = await User.findOneAndUpdate({ _id: userId }, payload, {
+  //   new: true,
+  //   runValidators: true,
+  // });
+  const data = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+
   return data;
 };
 

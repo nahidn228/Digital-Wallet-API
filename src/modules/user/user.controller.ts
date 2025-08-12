@@ -99,4 +99,30 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { getUsers, getSingleUsers, updateUser, deleteUser, getUserById };
+const updateUserById = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const payload = req.body;
+
+  const data = await UserServices.updateUserStatusIntoDB(userId, payload);
+  
+
+  if (!data) {
+    throw new AppError(status.NOT_FOUND, "User not found", "");
+  }
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "User Status Updated successfully",
+    data: data,
+  });
+});
+
+export {
+  getUsers,
+  getSingleUsers,
+  updateUser,
+  deleteUser,
+  getUserById,
+  updateUserById,
+};
