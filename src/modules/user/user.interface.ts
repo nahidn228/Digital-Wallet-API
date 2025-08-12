@@ -1,7 +1,7 @@
+import mongoose from "mongoose";
 import { UserRole } from "./user.constrain";
 
 export interface IUser {
-  _id?: string;
   name: string;
   email: string;
   phone: string;
@@ -18,7 +18,7 @@ export interface IUser {
 }
 
 export interface IUserProfile {
-  _id?: string;
+  _id?: mongoose.Types.ObjectId;
   name: string;
   email: string;
   phone: string;

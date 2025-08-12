@@ -7,6 +7,7 @@ import { UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/SendResponse";
 import AppError from "../../error/AppError";
+import mongoose from "mongoose";
 
 // const registerUser = catchAsync(async (req: Request, res: Response) => {
 //   const payload = req.body;
@@ -47,10 +48,9 @@ const getUsers = catchAsync(async (req: Request, res: Response) => {
 
 const getSingleUsers = catchAsync(async (req: Request, res: Response) => {
   const email = req.params.email;
+  console.log(email);
+
   const user = await UserServices.getUserByEmailFromDB(email);
-
-
-
 
   sendResponse(res, {
     statusCode: status.OK,
@@ -85,4 +85,18 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { getUsers, getSingleUsers, updateUser, deleteUser };
+const getUserById = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+
+  console.log(userId);
+  const data = await UserServices.getUserByIdFromDB(userId);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "User Retrieved successfully",
+    data: data,
+  });
+});
+
+export { getUsers, getSingleUsers, updateUser, deleteUser, getUserById };

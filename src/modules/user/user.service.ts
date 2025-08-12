@@ -6,6 +6,7 @@ import config from "../../config";
 import AppError from "../../error/AppError";
 import status from "http-status";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 // const createUserIntoDB = async (payload: IUser) => {
 //   payload.password = await bcrypt.hash(
@@ -75,11 +76,22 @@ const deleteUserByIdFromDB = async (userId: string) => {
   return data;
 };
 
+const getUserByIdFromDB = async (userId: string) => {
+  console.log(userId);
+  const data = await User.findById(userId);
+  return data;
+};
+
+const updateUserStatusIntoDB = async (userId: string) => {
+  const data = await User.findOneAndUpdate({ _id: userId });
+  return data;
+};
+
 export const UserServices = {
-  // createUserIntoDB,
-  // loginUserIntoDB,
   getUserFromDB,
   getUserByEmailFromDB,
   updateUserFromDB,
   deleteUserByIdFromDB,
+  getUserByIdFromDB,
+  updateUserStatusIntoDB,
 };
