@@ -34,87 +34,21 @@ export const withdraw = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const transactionSendMoney = catchAsync(
-  async (req: Request, res: Response) => {
-    const { senderId, receiverId, amount } = req.body;
+const sendMoney = catchAsync(async (req: Request, res: Response) => {
+  const { senderId, receiverId, amount } = req.body;
 
-    if (senderId === receiverId) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "Cannot send money to yourself",
-        ""
-      );
-    }
-
-    const senderWallet = await Wallet.findOne({ userId: senderId });
-    const receiverWallet = await Wallet.findOne({ userId: receiverId });
-
-    if (!senderWallet || !receiverWallet) {
-      throw new AppError(
-        httpStatus.NOT_FOUND,
-        "Sender or receiver wallet not found",
-        ""
-      );
-    }
-
-    if (senderWallet.balance < amount) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance", "");
-    }
-
-    // Update balances
-    const senderBefore = senderWallet.balance;
-    const receiverBefore = receiverWallet.balance;
-
-    senderWallet.balance -= amount;
-    receiverWallet.balance += amount;
-
-    await senderWallet.save();
-    await receiverWallet.save();
-
-    // Create sender transaction
-    const senderTransaction = await Transaction.create({
-      transactionId: generateTransactionReference(),
-      type: TransactionType.SEND_MONEY,
-      amount,
-      fee: 0,
-      totalAmount: amount,
-      status: TransactionStatus.COMPLETED,
-      senderId,
-      senderWalletId: senderWallet._id,
-      receiverId,
-      receiverWalletId: receiverWallet._id,
-      senderBalanceBefore: senderBefore,
-      senderBalanceAfter: senderWallet.balance,
-      receiverBalanceBefore: receiverBefore,
-      receiverBalanceAfter: receiverWallet.balance,
-    });
-
-    // Create receiver transaction
-    await Transaction.create({
-      transactionId: generateTransactionReference(),
-      type: TransactionType.CASH_IN,
-      amount,
-      fee: 0,
-      totalAmount: amount,
-      status: TransactionStatus.COMPLETED,
-      senderId,
-      senderWalletId: senderWallet._id,
-      receiverId,
-      receiverWalletId: receiverWallet._id,
-      senderBalanceBefore: senderBefore,
-      senderBalanceAfter: senderWallet.balance,
-      receiverBalanceBefore: receiverBefore,
-      receiverBalanceAfter: receiverWallet.balance,
-    });
-
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Money sent successfully",
-      data: senderTransaction,
-    });
-  }
-);
+  const transaction = await TransactionServices.sendMoneyFromDB(
+    senderId,
+    receiverId,
+    amount
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Money sent successfully",
+    data: transaction,
+  });
+});
 
 export const changeTransactionStatus = catchAsync(
   async (req: Request, res: Response) => {
@@ -157,4 +91,5 @@ export const transactionHistory = catchAsync(
 export const TransactionController = {
   deposit,
   withdraw,
+  sendMoney,
 };
