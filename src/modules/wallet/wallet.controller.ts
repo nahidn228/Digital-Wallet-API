@@ -21,21 +21,17 @@ const getUserWallet = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// wallet.controller.ts
 const depositToWallet = catchAsync(async (req: Request, res: Response) => {
-  const { userId, amount } = req.body;
+  const payload = req.body;
 
-  const wallet = await Wallet.findOneAndUpdate(
-    { userId },
-    { $inc: { balance: amount } }, // Increment balance
-    { new: true }
-  );
+  const wallet = await WalletService.depositWalletIntoDB(payload);
 
   if (!wallet) {
     throw new AppError(404, "Wallet not found", "");
   }
 
-  res.status(200).json({
+  sendResponse(res, {
+    statusCode: status.OK,
     success: true,
     message: "Deposit successful",
     data: wallet,
@@ -45,7 +41,7 @@ const depositToWallet = catchAsync(async (req: Request, res: Response) => {
 const withdrawFromWallet = catchAsync(async (req: Request, res: Response) => {
   const { userId, amount } = req.body;
 
-  const wallet = await Wallet.findOne({ userId });
+  const wallet = await WalletService.withdrawWalletFromDB(userId);
 
   if (!wallet) {
     throw new AppError(404, "Wallet not found", "");

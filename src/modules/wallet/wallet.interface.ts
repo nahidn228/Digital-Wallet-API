@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { IUser } from "../user/user.interface";
 import { WalletStatus } from "./wallet.constrain";
 
@@ -16,4 +17,8 @@ export interface IWalletBalance {
   email: string;
   availableBalance: number;
   pendingAmount: number;
+}
+export interface IDepositBalance {
+  userId: mongoose.Types.ObjectId;
+  amount: number;
 }
