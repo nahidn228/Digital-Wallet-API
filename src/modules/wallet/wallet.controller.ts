@@ -6,9 +6,24 @@ import AppError from "../../error/AppError";
 import { sendResponse } from "../../utils/SendResponse";
 import Wallet from "./wallet.model";
 
-const getUserWallet = catchAsync(async (req: Request, res: Response) => {
+const getUserWalletById = catchAsync(async (req: Request, res: Response) => {
   const userId = req.params.userId;
-  const wallet = await WalletService.getUserWalletFromDB(userId);
+  const wallet = await WalletService.getSingleWalletByIdFromDB(userId);
+  if (!wallet) {
+    throw new AppError(404, "Wallet not found", "");
+  }
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "User Wallet Getting successfully",
+    data: wallet,
+  });
+});
+
+const getUserWallet = catchAsync(async (req: Request, res: Response) => {
+  const email = req.params.email;
+  const wallet = await WalletService.getUserWalletFromDB(email);
   if (!wallet) {
     throw new AppError(404, "Wallet not found", "");
   }
@@ -65,8 +80,23 @@ const withdrawFromWallet = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateWalletStatus = catchAsync(async (req: Request, res: Response) => {
+  const email = req.params.email;
+  const payload = req.body;
+  const data = await WalletService.updateWalletFromDB(email, payload);
+
+  sendResponse(res, {
+    statusCode: status.CREATED,
+    success: true,
+    message: "Wallet Status Updated successfully",
+    data: data,
+  });
+});
+
 export const WalletController = {
-  getUserWallet,
+  getUserWalletById,
   depositToWallet,
   withdrawFromWallet,
+  getUserWallet,
+  updateWalletStatus,
 };
