@@ -213,20 +213,30 @@ const changeTransactionStatusIntoDB = async (
     }
     transaction.status = status;
 
-    const wallet = await Wallet.findById(transaction.senderWalletId).session(
-      session
-    );
-    if (!wallet)
+    const senderWallet = await Wallet.findById(
+      transaction.senderWalletId
+    ).session(session);
+    const receiverWallet = await Wallet.findById(
+      transaction.receiverWalletId
+    ).session(session);
+
+    if (!senderWallet || !receiverWallet)
       throw new AppError(httpStatus.NOT_FOUND, "Wallet not found", "");
 
     const debitStatuses = ["Pending", "Failed", "Cancelled"];
 
     if (debitStatuses.includes(status)) {
-      wallet.balance -= transaction.amount;
-      transaction.senderBalanceAfter! -= transaction.amount;
-    } else if (status === "Completed") {
-      wallet.balance += transaction.amount;
+      receiverWallet.balance -= transaction.amount;
+      senderWallet.balance += transaction.amount;
+
       transaction.senderBalanceAfter! += transaction.amount;
+      transaction.receiverBalanceAfter! -= transaction.amount;
+    } else if (status === "Completed") {
+      senderWallet.balance -= transaction.amount;
+      receiverWallet.balance += transaction.amount;
+
+      transaction.senderBalanceAfter! -= transaction.amount;
+      transaction.receiverBalanceAfter! += transaction.amount;
     } else if (status === TransactionStatus.REVERSED) {
       if (transaction.type === "Deposit") {
         throw new AppError(
@@ -237,8 +247,13 @@ const changeTransactionStatusIntoDB = async (
       }
 
       // Deduct amount from wallet
-      wallet.balance -= transaction.amount;
-      transaction.senderBalanceAfter! -= transaction.amount;
+
+      receiverWallet.balance -= transaction.amount;
+      senderWallet.balance += transaction.amount;
+
+      transaction.senderBalanceAfter! += transaction.amount;
+      transaction.receiverBalanceAfter! -= transaction.amount;
+
       transaction.status = status;
 
       // Create reversal audit record
@@ -254,15 +269,16 @@ const changeTransactionStatusIntoDB = async (
             originalTransactionId: transaction._id,
             senderId: transaction.senderId,
             senderWalletId: transaction.senderWalletId,
-            senderBalanceBefore: wallet.balance + transaction.amount, // Before deduction
-            senderBalanceAfter: wallet.balance, // After deduction
+            senderBalanceBefore: senderWallet.balance + transaction.amount, // Before deduction
+            senderBalanceAfter: senderWallet.balance, // After deduction
           },
         ],
         { session }
       );
     }
 
-    await wallet.save({ session });
+    await senderWallet.save({ session });
+    await receiverWallet.save({ session });
     await transaction.save({ session });
     await session.commitTransaction();
 
