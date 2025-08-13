@@ -24,7 +24,7 @@ export interface ITransaction {
   // Agent information (for cash-in/cash-out)
   agentId?: string | IUser;
   commission?: number;
-
+  originalTransactionId?: string;
   // Balance snapshots
   senderBalanceBefore?: number;
   senderBalanceAfter?: number;

@@ -11,6 +11,9 @@ transactionRoutes.get(
   TransactionController.getTransactionHistory
 );
 
-// transactionRoutes.patch("/:id/status", TransactionController.changeStatus);
+transactionRoutes.patch(
+  "/status/:id",
+  TransactionController.changeTransactionStatus
+);
 
 export default transactionRoutes;

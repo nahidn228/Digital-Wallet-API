@@ -9,6 +9,7 @@ const transactionSchema = new Schema<ITransaction>(
       required: true,
       unique: true,
     },
+
     type: {
       type: String,
       enum: Object.values(TransactionType),
@@ -71,6 +72,9 @@ const transactionSchema = new Schema<ITransaction>(
     commission: {
       type: Number,
       default: 0,
+    },
+    originalTransactionId: {
+      type: String,
     },
 
     // Balance snapshots

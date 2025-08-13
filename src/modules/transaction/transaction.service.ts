@@ -1,4 +1,4 @@
-import status from "http-status";
+import httpStatus from "http-status";
 import AppError from "../../error/AppError";
 import { generateTransactionReference } from "../../utils/generateReference";
 import Wallet from "../wallet/wallet.model";
@@ -11,11 +11,11 @@ import { IFilters, ITransaction } from "./transaction.interface";
 const depositIntoDB = async (userId: string, amount: number) => {
   if (typeof amount !== "number") amount = Number(amount);
   if (amount <= 0)
-    throw new AppError(status.BAD_REQUEST, "Invalid deposit amount", "");
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid deposit amount", "");
 
   const wallet = await Wallet.findById(userId);
 
-  if (!wallet) throw new AppError(status.NOT_FOUND, "Wallet not found", "");
+  if (!wallet) throw new AppError(httpStatus.NOT_FOUND, "Wallet not found", "");
 
   const before = wallet?.balance;
   wallet.balance += amount;
@@ -43,10 +43,10 @@ const withdrawFromDB = async (userId: string, amount: number) => {
 
   const wallet = await Wallet.findById(userId);
 
-  if (!wallet) throw new AppError(status.NOT_FOUND, "Wallet not found", "");
+  if (!wallet) throw new AppError(httpStatus.NOT_FOUND, "Wallet not found", "");
 
   if (wallet.balance < amount) {
-    throw new AppError(status.BAD_REQUEST, "Insufficient balance", "");
+    throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance", "");
   }
 
   const before = wallet.balance;
@@ -74,11 +74,15 @@ const sendMoneyFromDB = async (
   amount: number
 ) => {
   if (senderId === receiverId) {
-    throw new AppError(status.BAD_REQUEST, "Cannot send money to yourself", "");
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Cannot send money to yourself",
+      ""
+    );
   }
   if (typeof amount !== "number") amount = Number(amount);
   if (amount <= 0)
-    throw new AppError(status.BAD_REQUEST, "Invalid deposit amount", "");
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid deposit amount", "");
 
   //  const wallet = await Wallet.findById(userId);
 
@@ -87,14 +91,14 @@ const sendMoneyFromDB = async (
 
   if (!senderWallet || !receiverWallet) {
     throw new AppError(
-      status.NOT_FOUND,
+      httpStatus.NOT_FOUND,
       "Sender or receiver wallet not found",
       ""
     );
   }
 
   if (senderWallet.balance < amount) {
-    throw new AppError(status.BAD_REQUEST, "Insufficient balance", "");
+    throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance", "");
   }
 
   // Update balances
@@ -153,15 +157,12 @@ const getTransactionHistoryFromDB = async (
   filters: IFilters
 ) => {
   // const { type, status, startDate, endDate } = filters;
-  
+
   const skip = (page - 1) * limit;
 
   // Base condition: Only user's transactions
   const query: FilterQuery<ITransaction> = {
-    $or: [
-      { senderWalletId: walletId },
-      { receiverWalletId: walletId }
-    ]
+    $or: [{ senderWalletId: walletId }, { receiverWalletId: walletId }],
   };
 
   // Filter by type (DEPOSIT, WITHDRAW, TRANSFER)
@@ -187,16 +188,91 @@ const getTransactionHistoryFromDB = async (
 
   // Fetch paginated results & total count in parallel
   const [transactions, total] = await Promise.all([
-    Transaction.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
+    Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
 
-    Transaction.countDocuments(query)
+    Transaction.countDocuments(query),
   ]);
 
   return { transactions, total, page, limit };
- 
+};
+
+const changeTransactionStatusIntoDB = async (
+  id: string,
+  status: TransactionStatus
+) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const transaction = await Transaction.findById(id).session(session);
+    if (!transaction)
+      throw new AppError(httpStatus.NOT_FOUND, "Transaction not found", "");
+
+    if (transaction.status === status) {
+      return transaction;
+    }
+    transaction.status = status;
+
+    const wallet = await Wallet.findById(transaction.senderWalletId).session(
+      session
+    );
+    if (!wallet)
+      throw new AppError(httpStatus.NOT_FOUND, "Wallet not found", "");
+
+    const debitStatuses = ["Pending", "Failed", "Cancelled"];
+
+    if (debitStatuses.includes(status)) {
+      wallet.balance -= transaction.amount;
+      transaction.senderBalanceAfter! -= transaction.amount;
+    } else if (status === "Completed") {
+      wallet.balance += transaction.amount;
+      transaction.senderBalanceAfter! += transaction.amount;
+    } else if (status === TransactionStatus.REVERSED) {
+      if (transaction.type === "Deposit") {
+        throw new AppError(
+          httpStatus.BAD_REQUEST,
+          "This transactions can be reversed",
+          ""
+        );
+      }
+
+      // Deduct amount from wallet
+      wallet.balance -= transaction.amount;
+      transaction.senderBalanceAfter! -= transaction.amount;
+      transaction.status = status;
+
+      // Create reversal audit record
+      await Transaction.create(
+        [
+          {
+            transactionId: generateTransactionReference(),
+            type: TransactionType.REFUND,
+            amount: transaction.amount,
+            fee: 0,
+            totalAmount: transaction.amount,
+            status: TransactionStatus.COMPLETED,
+            originalTransactionId: transaction._id,
+            senderId: transaction.senderId,
+            senderWalletId: transaction.senderWalletId,
+            senderBalanceBefore: wallet.balance + transaction.amount, // Before deduction
+            senderBalanceAfter: wallet.balance, // After deduction
+          },
+        ],
+        { session }
+      );
+    }
+
+    await wallet.save({ session });
+    await transaction.save({ session });
+    await session.commitTransaction();
+
+    return transaction;
+  } catch (error: any) {
+    await session.abortTransaction();
+    throw new AppError(httpStatus.BAD_GATEWAY, `${error.message}`, "");
+  } finally {
+    session.endSession();
+  }
 };
 
 export const TransactionServices = {
@@ -204,4 +280,5 @@ export const TransactionServices = {
   withdrawFromDB,
   sendMoneyFromDB,
   getTransactionHistoryFromDB,
+  changeTransactionStatusIntoDB,
 };

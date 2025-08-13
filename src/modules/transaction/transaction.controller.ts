@@ -64,12 +64,13 @@ const getTransactionHistory = catchAsync(
       endDate: req.query.endDate as string,
     };
 
-    const transactionHistory = await TransactionServices.getTransactionHistoryFromDB(
-      walletId,
-      page,
-      limit,
-      filters
-    );
+    const transactionHistory =
+      await TransactionServices.getTransactionHistoryFromDB(
+        walletId,
+        page,
+        limit,
+        filters
+      );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -80,17 +81,15 @@ const getTransactionHistory = catchAsync(
   }
 );
 
-export const changeTransactionStatus = catchAsync(
+const changeTransactionStatus = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const transaction = await Transaction.findById(id);
-    if (!transaction)
-      throw new AppError(httpStatus.NOT_FOUND, "Transaction not found", "");
-
-    transaction.status = status;
-    await transaction.save();
+    const transaction = await TransactionServices.changeTransactionStatusIntoDB(
+      id,
+      status
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -101,24 +100,25 @@ export const changeTransactionStatus = catchAsync(
   }
 );
 
-const transactionHistory = catchAsync(async (req: Request, res: Response) => {
-  const { walletId } = req.params;
-
-  const transactions = await Transaction.find({
-    $or: [{ senderWalletId: walletId }, { receiverWalletId: walletId }],
-  }).sort({ createdAt: -1 });
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Transaction history retrieved",
-    data: transactions,
-  });
-});
-
 export const TransactionController = {
   deposit,
   withdraw,
   sendMoney,
   getTransactionHistory,
+  changeTransactionStatus,
 };
+
+// const transactionHistory = catchAsync(async (req: Request, res: Response) => {
+//   const { walletId } = req.params;
+
+//   const transactions = await Transaction.find({
+//     $or: [{ senderWalletId: walletId }, { receiverWalletId: walletId }],
+//   }).sort({ createdAt: -1 });
+
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "Transaction history retrieved",
+//     data: transactions,
+//   });
+// });
