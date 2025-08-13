@@ -63,6 +63,7 @@ const getSingleUsers = catchAsync(async (req: Request, res: Response) => {
 const updateUser = catchAsync(async (req: Request, res: Response) => {
   const email = req.params.email;
   const payload = req.body;
+ 
   const data = await UserServices.updateUserFromDB(email, payload);
 
   sendResponse(res, {
@@ -102,7 +103,7 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const updateUserById = catchAsync(async (req: Request, res: Response) => {
+const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const payload = req.body;
 
@@ -126,5 +127,5 @@ export {
   updateUser,
   deleteUser,
   getUserById,
-  updateUserById,
+  updateUserStatus,
 };

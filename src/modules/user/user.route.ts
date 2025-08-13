@@ -5,7 +5,7 @@ import {
   getUserById,
   getUsers,
   updateUser,
-  updateUserById,
+  updateUserStatus,
 } from "./user.controller";
 import { UserZodSchema } from "./user.validate";
 import { validateRequest } from "../../middleware/validateRequest";
@@ -14,14 +14,28 @@ import { UserRole } from "./user.constrain";
 
 const userRouts = Router();
 
-userRouts.get("/:email", getSingleUsers);
-userRouts.put("/:email", updateUser);
+userRouts.get("/:email", auth(Object.values(UserRole)), getSingleUsers);
+userRouts.put(
+  "/:email",
+  auth(Object.values(UserRole)),
+  validateRequest(UserZodSchema.updateUserSchema),
+  updateUser
+);
 
-userRouts.get("/profile/:userId", getUserById);
+userRouts.get(
+  "/profile/:userId",
+  auth([UserRole.Admin]),
+  getUserById
+);
 
-userRouts.patch("/status/:userId", updateUserById);
+userRouts.patch(
+  "/status/:userId",
+  validateRequest(UserZodSchema.updateUserSchema),
+  auth([UserRole.Admin]),
+  updateUserStatus
+);
 
 userRouts.delete("/:userId", auth([UserRole.Admin]), deleteUser);
-userRouts.get("/", getUsers);
+userRouts.get("/", auth([UserRole.Admin]), getUsers);
 
 export default userRouts;

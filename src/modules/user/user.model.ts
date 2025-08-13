@@ -1,9 +1,8 @@
-import { model, Schema } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 import { IUser } from "./user.interface";
 
 const userSchema = new Schema<IUser>(
   {
-    
     name: {
       type: String,
       required: [true, "Name is required"],
@@ -11,6 +10,10 @@ const userSchema = new Schema<IUser>(
       min: 3,
       max: 255,
     },
+    // wallet: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Wallet",
+    // },
     email: {
       type: String,
       required: [true, "User email required"],
@@ -82,5 +85,14 @@ const userSchema = new Schema<IUser>(
 );
 
 const User = model<IUser>("User", userSchema);
+
+userSchema.virtual("wallet", {
+  ref: "Wallet",
+  localField: "_id",
+  foreignField: "userId",
+  justOne: true,
+});
+userSchema.set("toObject", { virtuals: true });
+userSchema.set("toJSON", { virtuals: true });
 
 export default User;

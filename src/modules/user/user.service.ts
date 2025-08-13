@@ -64,6 +64,14 @@ const getUserByEmailFromDB = async (payload: string) => {
 };
 
 const updateUserFromDB = async (email: string, payload: Partial<IUser>) => {
+  if (payload.email) {
+    throw new AppError(
+      status.FORBIDDEN,
+      "You do not have Access For This Operation",
+      ""
+    );
+  }
+
   const data = await User.findOneAndUpdate({ email }, payload, {
     new: true,
     runValidators: true,

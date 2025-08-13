@@ -100,12 +100,38 @@ const changeTransactionStatus = catchAsync(
   }
 );
 
+const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+
+  const filters: IFilters = {
+    type: req.query.type as string,
+    status: req.query.status as string,
+    startDate: req.query.startDate as string,
+    endDate: req.query.endDate as string,
+  };
+
+  const transactions = await TransactionServices.getTransactionFromDB(
+    page,
+    limit,
+    filters
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "All Transaction Retrieved successfully",
+    data: transactions,
+  });
+});
+
 export const TransactionController = {
   deposit,
   withdraw,
   sendMoney,
   getTransactionHistory,
   changeTransactionStatus,
+  getAllTransaction,
 };
 
 // const transactionHistory = catchAsync(async (req: Request, res: Response) => {

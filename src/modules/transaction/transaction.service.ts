@@ -291,10 +291,51 @@ const changeTransactionStatusIntoDB = async (
   }
 };
 
+const getTransactionFromDB = async (
+  page: number,
+  limit: number,
+  filters: IFilters
+) => {
+  const skip = (page - 1) * limit;
+
+  const query: FilterQuery<ITransaction> = {};
+
+  // Filter by type (DEPOSIT, WITHDRAW, TRANSFER)
+  if (filters.type) {
+    query.type = filters.type;
+  }
+
+  // Filter by status (PENDING, COMPLETED, FAILED)
+  if (filters.status) {
+    query.status = filters.status;
+  }
+
+  // Filter by date range
+  if (filters.startDate || filters.endDate) {
+    query.createdAt = {};
+    if (filters.startDate) {
+      query.createdAt.$gte = new Date(filters.startDate);
+    }
+    if (filters.endDate) {
+      query.createdAt.$lte = new Date(filters.endDate);
+    }
+  }
+
+  // Fetch paginated results & total count in parallel
+  const [transactions, total] = await Promise.all([
+    Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+
+    Transaction.countDocuments(query),
+  ]);
+
+  return { transactions, total, page, limit };
+};
+
 export const TransactionServices = {
   depositIntoDB,
   withdrawFromDB,
   sendMoneyFromDB,
   getTransactionHistoryFromDB,
   changeTransactionStatusIntoDB,
+  getTransactionFromDB,
 };

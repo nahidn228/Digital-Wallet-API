@@ -7,6 +7,7 @@ export interface IUser {
   phone: string;
   password: string;
   role: UserRole;
+  
   profilePicture?: string;
   nid?: string;
   address?: string;
