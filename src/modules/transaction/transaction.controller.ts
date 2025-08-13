@@ -9,6 +9,7 @@ import { TransactionStatus, TransactionType } from "./transaction.constrain";
 import { sendResponse } from "../../utils/SendResponse";
 import Transaction from "./transaction.model";
 import { TransactionServices } from "./transaction.service";
+import { IFilters } from "./transaction.interface";
 
 const deposit = catchAsync(async (req: Request, res: Response) => {
   const { userId, amount } = req.body;
@@ -22,7 +23,7 @@ const deposit = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const withdraw = catchAsync(async (req: Request, res: Response) => {
+const withdraw = catchAsync(async (req: Request, res: Response) => {
   const { userId, amount } = req.body;
   const transaction = await TransactionServices.withdrawFromDB(userId, amount);
 
@@ -50,6 +51,35 @@ const sendMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getTransactionHistory = catchAsync(
+  async (req: Request, res: Response) => {
+    const { walletId } = req.params;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const filters: IFilters = {
+      type: req.query.type as string,
+      status: req.query.status as string,
+      startDate: req.query.startDate as string,
+      endDate: req.query.endDate as string,
+    };
+
+    const transactionHistory = await TransactionServices.getTransactionHistoryFromDB(
+      walletId,
+      page,
+      limit,
+      filters
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Transaction history retrieved",
+      data: transactionHistory,
+    });
+  }
+);
+
 export const changeTransactionStatus = catchAsync(
   async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -71,25 +101,24 @@ export const changeTransactionStatus = catchAsync(
   }
 );
 
-export const transactionHistory = catchAsync(
-  async (req: Request, res: Response) => {
-    const { walletId } = req.params;
+const transactionHistory = catchAsync(async (req: Request, res: Response) => {
+  const { walletId } = req.params;
 
-    const transactions = await Transaction.find({
-      $or: [{ senderWalletId: walletId }, { receiverWalletId: walletId }],
-    }).sort({ createdAt: -1 });
+  const transactions = await Transaction.find({
+    $or: [{ senderWalletId: walletId }, { receiverWalletId: walletId }],
+  }).sort({ createdAt: -1 });
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Transaction history retrieved",
-      data: transactions,
-    });
-  }
-);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Transaction history retrieved",
+    data: transactions,
+  });
+});
 
 export const TransactionController = {
   deposit,
   withdraw,
   sendMoney,
+  getTransactionHistory,
 };

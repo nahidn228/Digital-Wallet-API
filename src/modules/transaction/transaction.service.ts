@@ -4,8 +4,9 @@ import { generateTransactionReference } from "../../utils/generateReference";
 import Wallet from "../wallet/wallet.model";
 import { TransactionStatus, TransactionType } from "./transaction.constrain";
 import Transaction from "./transaction.model";
-import mongoose from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 import inputAmountValidation from "../../utils/inputAmountValidation";
+import { IFilters, ITransaction } from "./transaction.interface";
 
 const depositIntoDB = async (userId: string, amount: number) => {
   if (typeof amount !== "number") amount = Number(amount);
@@ -145,8 +146,62 @@ const sendMoneyFromDB = async (
   return { senderTransaction, receiverTransaction };
 };
 
+const getTransactionHistoryFromDB = async (
+  walletId: string,
+  page: number,
+  limit: number,
+  filters: IFilters
+) => {
+  // const { type, status, startDate, endDate } = filters;
+  
+  const skip = (page - 1) * limit;
+
+  // Base condition: Only user's transactions
+  const query: FilterQuery<ITransaction> = {
+    $or: [
+      { senderWalletId: walletId },
+      { receiverWalletId: walletId }
+    ]
+  };
+
+  // Filter by type (DEPOSIT, WITHDRAW, TRANSFER)
+  if (filters.type) {
+    query.type = filters.type;
+  }
+
+  // Filter by status (PENDING, COMPLETED, FAILED)
+  if (filters.status) {
+    query.status = filters.status;
+  }
+
+  // Filter by date range
+  if (filters.startDate || filters.endDate) {
+    query.createdAt = {};
+    if (filters.startDate) {
+      query.createdAt.$gte = new Date(filters.startDate);
+    }
+    if (filters.endDate) {
+      query.createdAt.$lte = new Date(filters.endDate);
+    }
+  }
+
+  // Fetch paginated results & total count in parallel
+  const [transactions, total] = await Promise.all([
+    Transaction.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+
+    Transaction.countDocuments(query)
+  ]);
+
+  return { transactions, total, page, limit };
+ 
+};
+
 export const TransactionServices = {
   depositIntoDB,
   withdrawFromDB,
   sendMoneyFromDB,
+  getTransactionHistoryFromDB,
 };
