@@ -18,7 +18,7 @@ const createUserIntoDB = async (payload: IRegisterData) => {
   const wallet = await Wallet.create({
     userId: data?._id,
     email: data?.email,
-    balance: 0,
+    balance: 50,
     status: "Active",
   });
 
