@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const wallet_controller_1 = require("./wallet.controller");
+const auth_1 = require("../../middleware/auth");
+const user_constrain_1 = require("../user/user.constrain");
+const wallet_validate_1 = require("./wallet.validate");
+const validateRequest_1 = require("../../middleware/validateRequest");
+const walletRoutes = (0, express_1.Router)();
+walletRoutes.get("/:userId", (0, auth_1.auth)([user_constrain_1.UserRole.Admin]), wallet_controller_1.WalletController.getUserWalletById);
+walletRoutes.get("/profile/:email", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), wallet_controller_1.WalletController.getUserWallet);
+walletRoutes.post("/deposit", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), (0, validateRequest_1.validateRequest)(wallet_validate_1.WalletZodSchema.depositWalletSchema), wallet_controller_1.WalletController.depositToWallet);
+walletRoutes.post("/withdraw", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), (0, validateRequest_1.validateRequest)(wallet_validate_1.WalletZodSchema.withdrawWalletSchema), wallet_controller_1.WalletController.withdrawFromWallet);
+walletRoutes.patch("/status/:email", (0, auth_1.auth)([user_constrain_1.UserRole.Admin]), (0, validateRequest_1.validateRequest)(wallet_validate_1.WalletZodSchema.updateWalletByEmailSchema), wallet_controller_1.WalletController.updateWalletStatus);
+exports.default = walletRoutes;

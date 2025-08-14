@@ -1,6 +1,8 @@
 import { string, z } from "zod";
 import mongoose from "mongoose";
 import { WalletStatus } from "./wallet.constrain";
+import { partial } from "zod/v4/core/util.cjs";
+import { IWallet } from "./wallet.interface";
 
 // const objectIdSchema = z
 //   .string()
@@ -26,8 +28,11 @@ const withdrawWalletSchema = z.object({
 });
 
 const updateWalletByEmailSchema = z.object({
-  email: z.email({ error: "please enter a valid email" }),
-  payload: z.string(),
+  status: z.enum([
+    WalletStatus.ACTIVE,
+    WalletStatus.BLOCKED,
+    WalletStatus.SUSPENDED,
+  ]),
 });
 
 export const WalletZodSchema = {

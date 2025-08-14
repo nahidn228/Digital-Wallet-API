@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const user_controller_1 = require("./user.controller");
+const user_validate_1 = require("./user.validate");
+const validateRequest_1 = require("../../middleware/validateRequest");
+const auth_1 = require("../../middleware/auth");
+const user_constrain_1 = require("./user.constrain");
+const userRouts = (0, express_1.Router)();
+userRouts.get("/:email", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), user_controller_1.getSingleUsers);
+userRouts.put("/:email", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), (0, validateRequest_1.validateRequest)(user_validate_1.UserZodSchema.updateUserSchema), user_controller_1.updateUser);
+userRouts.get("/profile/:userId", (0, auth_1.auth)([user_constrain_1.UserRole.Admin]), user_controller_1.getUserById);
+userRouts.patch("/status/:userId", (0, validateRequest_1.validateRequest)(user_validate_1.UserZodSchema.updateUserSchema), (0, auth_1.auth)([user_constrain_1.UserRole.Admin]), user_controller_1.updateUserStatus);
+userRouts.delete("/:userId", (0, auth_1.auth)([user_constrain_1.UserRole.Admin]), user_controller_1.deleteUser);
+userRouts.get("/", (0, auth_1.auth)([user_constrain_1.UserRole.Admin]), user_controller_1.getUsers);
+exports.default = userRouts;

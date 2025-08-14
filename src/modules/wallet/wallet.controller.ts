@@ -83,6 +83,9 @@ const withdrawFromWallet = catchAsync(async (req: Request, res: Response) => {
 const updateWalletStatus = catchAsync(async (req: Request, res: Response) => {
   const email = req.params.email;
   const payload = req.body;
+
+
+
   const data = await WalletService.updateWalletFromDB(email, payload);
 
   sendResponse(res, {

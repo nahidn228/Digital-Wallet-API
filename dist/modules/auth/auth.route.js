@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const auth_1 = require("./../../middleware/auth");
+const express_1 = require("express");
+const validateRequest_1 = require("../../middleware/validateRequest");
+const auth_validate_1 = require("./auth.validate");
+const user_constrain_1 = require("../user/user.constrain");
+const auth_controller_1 = require("./auth.controller");
+const authRouts = (0, express_1.Router)();
+authRouts.post("/register", (0, validateRequest_1.validateRequest)(auth_validate_1.AuthZodSchema.createUserZodSchema), auth_controller_1.authController.registerUser);
+authRouts.post("/login", (0, validateRequest_1.validateRequest)(auth_validate_1.AuthZodSchema.loginUserZodSchema), auth_controller_1.authController.loginUser);
+authRouts.post("/refreshToken", auth_controller_1.authController.refreshToken);
+authRouts.post("/changePassword", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), (0, validateRequest_1.validateRequest)(auth_validate_1.AuthZodSchema.changePasswordZodSchema), auth_controller_1.authController.changePassword);
+authRouts.post("/resetPassword", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), auth_controller_1.authController.resetpassword);
+authRouts.post("/logout", (0, auth_1.auth)(Object.values(user_constrain_1.UserRole)), auth_controller_1.authController.logout);
+exports.default = authRouts;
