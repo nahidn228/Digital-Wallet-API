@@ -171,9 +171,9 @@ DEFAULT_WALLET_BALANCE=50
 POST /api/auth/register
 {
             "name": "Md. Hasan",
-            "email": "nHasan2@example.com",
+            "email": "hasan@example.com",
             "phone": "+8801711111118",
-            "password": "Hasan@123",
+            "password": "Asdf@123456789",
             "role": "User"
 }
 
