@@ -37,7 +37,7 @@ const createUserIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function
     const wallet = yield wallet_model_1.default.create({
         userId: data === null || data === void 0 ? void 0 : data._id,
         email: data === null || data === void 0 ? void 0 : data.email,
-        balance: 0,
+        balance: 50,
         status: "Active",
     });
     return data;
