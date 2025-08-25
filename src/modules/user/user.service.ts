@@ -7,6 +7,7 @@ import AppError from "../../error/AppError";
 import status from "http-status";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { FilterQuery } from "mongoose";
 
 // const createUserIntoDB = async (payload: IUser) => {
 //   payload.password = await bcrypt.hash(
@@ -48,13 +49,45 @@ import mongoose from "mongoose";
 //   return accessToken;
 // };
 
-const getUserFromDB = async () => {
-  const data = await User.find();
-  return data;
+export interface IUserFilters {
+  email?: string;
+  role?: string;
+}
+
+const getUserFromDB = async (
+  page: number = 1,
+  limit: number = 10,
+  filters: IUserFilters = {}
+) => {
+  const skip = (page - 1) * limit;
+
+  // Base query
+  const query: FilterQuery<IUser> = {};
+
+  // Filter by email (partial match)
+  if (filters.email) {
+    query.email = { $regex: filters.email, $options: "i" };
+  }
+
+  // Filter by role
+  if (filters.role) {
+    query.role = filters.role;
+  }
+
+  // Fetch paginated results & total count in parallel
+  const [users, total] = await Promise.all([
+    User.find(query)
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    User.countDocuments(query),
+  ]);
+
+  return { users, total, page, limit };
 };
 
 const getUserByEmailFromDB = async (payload: string) => {
- 
   const user = await User.findOne({ email: payload });
 
   if (!user) {

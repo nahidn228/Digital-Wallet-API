@@ -3,7 +3,7 @@ import status from "http-status";
 import User from "./user.model";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { UserZodSchema } from "./user.validate";
-import { UserServices } from "./user.service";
+import { IUserFilters, UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/SendResponse";
 import AppError from "../../error/AppError";
@@ -36,13 +36,35 @@ import mongoose from "mongoose";
 // });
 
 const getUsers = catchAsync(async (req: Request, res: Response) => {
-  const data = await UserServices.getUserFromDB();
+  // Extract and parse query params
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  // Build filters object
+  const filters: IUserFilters = {};
+
+  if (req.query.email) {
+    filters.email = req.query.email as string;
+  }
+
+  if (req.query.role) {
+    filters.role = req.query.role as string;
+  }
+
+  // Get data from DB
+  // const {
+  //   users,
+  //   total,
+  //   page: currentPage,
+  //   limit: pageSize,
+  // } = await UserServices.getUserFromDB(page, limit, filters);
+  const users = await UserServices.getUserFromDB(page, limit, filters);
 
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
     message: "User retrieved successfully",
-    data: data,
+    data: users,
   });
 });
 
