@@ -54,6 +54,7 @@ const getUserFromDB = async () => {
 };
 
 const getUserByEmailFromDB = async (payload: string) => {
+ 
   const user = await User.findOne({ email: payload });
 
   if (!user) {

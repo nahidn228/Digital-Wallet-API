@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import status from "http-status";
 import User from "./user.model";
-
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { UserZodSchema } from "./user.validate";
 import { UserServices } from "./user.service";
 import { catchAsync } from "../../utils/catchAsync";
@@ -47,23 +47,36 @@ const getUsers = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSingleUsers = catchAsync(async (req: Request, res: Response) => {
-  const email = req.params.email;
-  console.log(email);
+  const token = req.cookies.accessToken;
+  if (!token) {
+    return res.status(401).json({ message: "No token found" });
+  }
+  const decoded = jwt.verify(
+    token,
+    process.env.JWT_ACCESS_SECRET as string
+  ) as JwtPayload;
 
-  const user = await UserServices.getUserByEmailFromDB(email);
+  const emailFromToken = decoded.email;
+
+  const user = await UserServices.getUserByEmailFromDB(emailFromToken);
+
+  if (!user) {
+    return res.status(401).json({ message: "No token found" });
+  }
+  const { password, ...userWithoutPassword } = user.toObject();
 
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
     message: "User retrieved successfully",
-    data: user,
+    data: userWithoutPassword,
   });
 });
 
 const updateUser = catchAsync(async (req: Request, res: Response) => {
   const email = req.params.email;
   const payload = req.body;
- 
+
   const data = await UserServices.updateUserFromDB(email, payload);
 
   sendResponse(res, {

@@ -14,7 +14,7 @@ import { UserRole } from "./user.constrain";
 
 const userRouts = Router();
 
-userRouts.get("/:email", auth(Object.values(UserRole)), getSingleUsers);
+userRouts.get("/me", auth(Object.values(UserRole)), getSingleUsers);
 userRouts.put(
   "/:email",
   auth(Object.values(UserRole)),
