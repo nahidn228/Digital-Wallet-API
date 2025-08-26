@@ -22,8 +22,8 @@ const withdrawSchema = z.object({
 
 /* 3. Send Money */
 const sendMoneySchema = z.object({
-  senderId: z.string(),
-  receiverId: z.string(),
+  senderEmail: z.string(),
+  receiverEmail: z.string(),
   amount: z.number().positive("Amount must be greater than 0"),
 });
 

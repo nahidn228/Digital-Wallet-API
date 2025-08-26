@@ -36,13 +36,14 @@ const withdraw = catchAsync(async (req: Request, res: Response) => {
 });
 
 const sendMoney = catchAsync(async (req: Request, res: Response) => {
-  const { senderId, receiverId, amount } = req.body;
+  const { senderEmail, receiverEmail, amount } = req.body;
 
   const transaction = await TransactionServices.sendMoneyFromDB(
-    senderId,
-    receiverId,
+    senderEmail,
+    receiverEmail,
     amount
   );
+  
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

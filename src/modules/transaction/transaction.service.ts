@@ -69,11 +69,11 @@ const withdrawFromDB = async (userId: string, amount: number) => {
 };
 
 const sendMoneyFromDB = async (
-  senderId: string,
-  receiverId: string,
+  senderEmail: string,
+  receiverEmail: string,
   amount: number
 ) => {
-  if (senderId === receiverId) {
+  if (senderEmail === receiverEmail) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       "Cannot send money to yourself",
@@ -85,9 +85,10 @@ const sendMoneyFromDB = async (
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid deposit amount", "");
 
   //  const wallet = await Wallet.findById(userId);
+  // const wallet = await Wallet.findOne({ email });
 
-  const senderWallet = await Wallet.findById(senderId);
-  const receiverWallet = await Wallet.findById(receiverId);
+  const senderWallet = await Wallet.findOne({ email: senderEmail });
+  const receiverWallet = await Wallet.findOne({ email: receiverEmail });
 
   if (!senderWallet || !receiverWallet) {
     throw new AppError(
@@ -119,9 +120,9 @@ const sendMoneyFromDB = async (
     fee: 0,
     totalAmount: amount,
     status: TransactionStatus.COMPLETED,
-    senderId,
+    senderEmail,
     senderWalletId: senderWallet?._id,
-    receiverId,
+    receiverEmail,
     receiverWalletId: receiverWallet?._id,
     senderBalanceBefore: senderBefore,
     senderBalanceAfter: senderWallet?.balance,
@@ -137,9 +138,9 @@ const sendMoneyFromDB = async (
     fee: 0,
     totalAmount: amount,
     status: TransactionStatus.COMPLETED,
-    senderId,
+    senderEmail,
     senderWalletId: senderWallet?._id,
-    receiverId,
+    receiverEmail,
     receiverWalletId: receiverWallet?._id,
     senderBalanceBefore: senderBefore,
     senderBalanceAfter: senderWallet?.balance,
@@ -267,7 +268,7 @@ const changeTransactionStatusIntoDB = async (
             totalAmount: transaction.amount,
             status: TransactionStatus.COMPLETED,
             originalTransactionId: transaction._id,
-            senderId: transaction.senderId,
+            senderEmail: transaction.senderEmail,
             senderWalletId: transaction.senderWalletId,
             senderBalanceBefore: senderWallet.balance + transaction.amount, // Before deduction
             senderBalanceAfter: senderWallet.balance, // After deduction

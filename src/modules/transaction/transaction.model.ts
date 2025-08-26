@@ -43,8 +43,8 @@ const transactionSchema = new Schema<ITransaction>(
     },
 
     // Sender
-    senderId: {
-      type: Schema.Types.ObjectId,
+    senderEmail: {
+      type: String,
       ref: "User",
       required: true,
     },
@@ -54,9 +54,10 @@ const transactionSchema = new Schema<ITransaction>(
       required: true,
     },
 
+   
     // Receiver (optional)
-    receiverId: {
-      type: Schema.Types.ObjectId,
+    receiverEmail: {
+      type: String,
       ref: "User",
     },
     receiverWalletId: {

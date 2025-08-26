@@ -14,11 +14,11 @@ export interface ITransaction {
   reference?: string;
 
   // Sender information
-  senderId: string | IUser;
+  senderEmail: string | IUser;
   senderWalletId: string | IWallet;
 
   // Receiver information (optional - for transfers)
-  receiverId?: string | IUser;
+  receiverEmail?: string | IUser;
   receiverWalletId?: string | IWallet;
 
   // Agent information (for cash-in/cash-out)
