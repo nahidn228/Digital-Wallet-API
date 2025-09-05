@@ -26,7 +26,7 @@ transactionRoutes.post(
   TransactionController.sendMoney
 );
 transactionRoutes.get(
-  "/history/:walletId",
+  "/history/:walletEmail",
   auth(Object.values(UserRole)),
   TransactionController.getTransactionHistory
 );

@@ -67,6 +67,7 @@ const changePasswordIntoDB = (email, newPassword, oldPassword) => __awaiter(void
     const isUserExist = yield user_model_1.default.findOne({ email });
     if (!isUserExist) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, "User Not Found", "");
+        return;
     }
     const storedPassword = isUserExist.password;
     const isPasswordMatched = yield bcryptjs_1.default.compare(oldPassword, storedPassword);

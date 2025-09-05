@@ -9,31 +9,31 @@ import { sendResponse } from "../../utils/SendResponse";
 import AppError from "../../error/AppError";
 import mongoose from "mongoose";
 
-// const registerUser = catchAsync(async (req: Request, res: Response) => {
-//   const payload = req.body;
+const registerUser = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
 
-//   const data = await UserServices.createUserIntoDB(payload);
+  const data = await UserServices.createUserIntoDB(payload);
 
-//   sendResponse(res, {
-//     statusCode: status.CREATED,
-//     success: true,
-//     message: "User registered successfully",
-//     data: data,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: status.CREATED,
+    success: true,
+    message: "User registered successfully",
+    data: data,
+  });
+});
 
-// const loginUser = catchAsync(async (req: Request, res: Response) => {
-//   const payload = req.body;
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
 
-//   const data = await UserServices.loginUserIntoDB(payload);
+  const data = await UserServices.loginUserIntoDB(payload);
 
-//   sendResponse(res, {
-//     statusCode: status.OK,
-//     success: true,
-//     message: "User Login successfully",
-//     data: data,
-//   });
-// });
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: "User Login successfully",
+    data: data,
+  });
+});
 
 const getUsers = catchAsync(async (req: Request, res: Response) => {
   // Extract and parse query params
@@ -97,9 +97,19 @@ const getSingleUsers = catchAsync(async (req: Request, res: Response) => {
 
 const updateUser = catchAsync(async (req: Request, res: Response) => {
   const email = req.params.email;
-  const payload = req.body;
+  const payload = req.body || {};
+  // console.log({ email, payload });
 
-  const data = await UserServices.updateUserFromDB(email, payload);
+  if (!Object.keys(payload).length) {
+    return res.status(400).json({ message: "No data provided for update" });
+  }
+
+  // console.log("Received update request for:", email);
+  // console.log("Payload received:", payload);
+  // console.log("Payload type:", typeof payload);
+  // console.log("Payload keys:", Object.keys(payload));
+
+  const data = await UserServices.updateUserFromDB(email, req.body);
 
   sendResponse(res, {
     statusCode: status.CREATED,
@@ -163,4 +173,6 @@ export {
   deleteUser,
   getUserById,
   updateUserStatus,
+  registerUser,
+  loginUser,
 };

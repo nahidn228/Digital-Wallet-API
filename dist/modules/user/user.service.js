@@ -14,44 +14,56 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserServices = void 0;
 const user_model_1 = __importDefault(require("./user.model"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const config_1 = __importDefault(require("../../config"));
 const AppError_1 = __importDefault(require("../../error/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
-// const createUserIntoDB = async (payload: IUser) => {
-//   payload.password = await bcrypt.hash(
-//     payload.password,
-//     Number(config.BCRYPT_SALT_ROUND)
-//   );
-//   const data = await User.create(payload);
-//   return data;
-// };
-// const loginUserIntoDB = async (payload: IUser) => {
-//   const isUserExist = await User.findOne({ email: payload.email });
-//   if (!isUserExist) {
-//     throw new AppError(status.UNAUTHORIZED, "User Not Found", ""); //status_code, message, stack
-//   }
-//   const checkPassword = await bcrypt.compare(
-//     payload.password,
-//     isUserExist.password
-//   );
-//   if (!checkPassword) {
-//     throw new AppError(
-//       status.BAD_REQUEST,
-//       "Email and password are not Matched",
-//       ""
-//     );
-//   }
-//   const jwtPayload = {
-//     email: payload.email,
-//     role: isUserExist.role,
-//   };
-//   const accessToken = jwt.sign(jwtPayload, config.JWT_ACCESS_SECRET as string, {
-//     expiresIn: "7d",
-//   });
-//   return accessToken;
-// };
-const getUserFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    const data = yield user_model_1.default.find();
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const createUserIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    payload.password = yield bcryptjs_1.default.hash(payload.password, Number(config_1.default.BCRYPT_SALT_ROUND));
+    const data = yield user_model_1.default.create(payload);
     return data;
+});
+const loginUserIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const isUserExist = yield user_model_1.default.findOne({ email: payload.email });
+    if (!isUserExist) {
+        throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, "User Not Found", ""); //status_code, message, stack
+    }
+    const checkPassword = yield bcryptjs_1.default.compare(payload.password, isUserExist.password);
+    if (!checkPassword) {
+        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "Email and password are not Matched", "");
+    }
+    const jwtPayload = {
+        email: payload.email,
+        role: isUserExist.role,
+    };
+    const accessToken = jsonwebtoken_1.default.sign(jwtPayload, config_1.default.JWT_ACCESS_SECRET, {
+        expiresIn: "7d",
+    });
+    return accessToken;
+});
+const getUserFromDB = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (page = 1, limit = 10, filters = {}) {
+    const skip = (page - 1) * limit;
+    // Base query
+    const query = {};
+    // Filter by email (partial match)
+    if (filters.email) {
+        query.email = { $regex: filters.email, $options: "i" };
+    }
+    // Filter by role
+    if (filters.role) {
+        query.role = filters.role;
+    }
+    // Fetch paginated results & total count in parallel
+    const [users, total] = yield Promise.all([
+        user_model_1.default.find(query)
+            .select("-password")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit),
+        user_model_1.default.countDocuments(query),
+    ]);
+    return { users, total, page, limit };
 });
 const getUserByEmailFromDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_model_1.default.findOne({ email: payload });
@@ -87,6 +99,7 @@ const updateUserStatusIntoDB = (userId, payload) => __awaiter(void 0, void 0, vo
     //   new: true,
     //   runValidators: true,
     // });
+    console.log(payload);
     const data = yield user_model_1.default.findByIdAndUpdate(userId, payload, {
         new: true,
         runValidators: true,
@@ -100,4 +113,6 @@ exports.UserServices = {
     deleteUserByIdFromDB,
     getUserByIdFromDB,
     updateUserStatusIntoDB,
+    loginUserIntoDB,
+    createUserIntoDB,
 };

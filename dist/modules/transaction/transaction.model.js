@@ -40,8 +40,8 @@ const transactionSchema = new mongoose_1.Schema({
         type: String,
     },
     // Sender
-    senderId: {
-        type: mongoose_1.Schema.Types.ObjectId,
+    senderEmail: {
+        type: String,
         ref: "User",
         required: true,
     },
@@ -51,8 +51,8 @@ const transactionSchema = new mongoose_1.Schema({
         required: true,
     },
     // Receiver (optional)
-    receiverId: {
-        type: mongoose_1.Schema.Types.ObjectId,
+    receiverEmail: {
+        type: String,
         ref: "User",
     },
     receiverWalletId: {

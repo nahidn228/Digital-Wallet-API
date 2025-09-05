@@ -7,65 +7,162 @@ import Transaction from "./transaction.model";
 import mongoose, { FilterQuery } from "mongoose";
 import inputAmountValidation from "../../utils/inputAmountValidation";
 import { IFilters, ITransaction } from "./transaction.interface";
+import User from "../user/user.model";
+import { UserRole } from "../user/user.constrain";
 
-const depositIntoDB = async (userId: string, amount: number) => {
+const depositIntoDB = async (
+  senderEmail: string,
+  receiverEmail: string,
+  amount: number
+) => {
   if (typeof amount !== "number") amount = Number(amount);
   if (amount <= 0)
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid deposit amount", "");
 
-  const wallet = await Wallet.findById(userId);
+  const senderWallet = await Wallet.findOne({ email: senderEmail });
+  const receiverWallet = await Wallet.findOne({ email: receiverEmail });
 
-  if (!wallet) throw new AppError(httpStatus.NOT_FOUND, "Wallet not found", "");
+  if (!senderWallet || !receiverWallet) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Sender or receiver wallet not found",
+      ""
+    );
+  }
 
-  const before = wallet?.balance;
-  wallet.balance += amount;
-  await wallet.save();
+  if (senderWallet.balance < amount) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance", "");
+  }
 
-  const transaction = await Transaction.create({
+  // Update balances
+  const senderBefore = senderWallet?.balance;
+  const receiverBefore = receiverWallet?.balance;
+
+  senderWallet.balance -= amount;
+  receiverWallet.balance += amount;
+
+  await senderWallet.save();
+  await receiverWallet.save();
+
+  // Create sender transaction
+  const senderTransaction = await Transaction.create({
     transactionId: generateTransactionReference(),
     type: TransactionType.DEPOSIT,
     amount,
     fee: 0,
     totalAmount: amount,
     status: TransactionStatus.COMPLETED,
-    senderId: new mongoose.Types.ObjectId(userId),
-    senderWalletId: wallet?._id,
-    senderBalanceBefore: before,
-    senderBalanceAfter: wallet?.balance,
+    senderEmail,
+    senderWalletId: senderWallet?._id,
+    receiverEmail,
+    receiverWalletId: receiverWallet?._id,
+    senderBalanceBefore: senderBefore,
+    senderBalanceAfter: senderWallet?.balance,
+    receiverBalanceBefore: receiverBefore,
+    receiverBalanceAfter: receiverWallet?.balance,
   });
 
-  return transaction;
-};
-
-const withdrawFromDB = async (userId: string, amount: number) => {
-  if (typeof amount !== "number") amount = Number(amount);
-  inputAmountValidation(amount);
-
-  const wallet = await Wallet.findById(userId);
-
-  if (!wallet) throw new AppError(httpStatus.NOT_FOUND, "Wallet not found", "");
-
-  if (wallet.balance < amount) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance", "");
-  }
-
-  const before = wallet.balance;
-  wallet.balance -= amount;
-  await wallet.save();
-
-  const transaction = await Transaction.create({
+  // Create receiver transaction
+  const receiverTransaction = await Transaction.create({
     transactionId: generateTransactionReference(),
-    type: TransactionType.WITHDRAW,
+    type: TransactionType.CASH_IN,
     amount,
     fee: 0,
     totalAmount: amount,
     status: TransactionStatus.COMPLETED,
-    senderId: userId,
-    senderWalletId: wallet._id,
-    senderBalanceBefore: before,
-    senderBalanceAfter: wallet.balance,
+    senderEmail,
+    senderWalletId: senderWallet?._id,
+    receiverEmail,
+    receiverWalletId: receiverWallet?._id,
+    senderBalanceBefore: senderBefore,
+    senderBalanceAfter: senderWallet?.balance,
+    receiverBalanceBefore: receiverBefore,
+    receiverBalanceAfter: receiverWallet?.balance,
   });
-  return transaction;
+
+  return senderTransaction;
+};
+
+const withdrawFromDB = async (
+  senderEmail: string,
+  receiverEmail: string,
+  amount: number
+) => {
+  if (typeof amount !== "number") amount = Number(amount);
+  if (amount <= 0)
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid deposit amount", "");
+
+  const senderWallet = await Wallet.findOne({ email: senderEmail });
+  const receiverWallet = await Wallet.findOne({ email: receiverEmail });
+  const receiverInfo = await User.findOne({ email: receiverEmail });
+
+  if (receiverInfo?.role !== UserRole.Agent) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "You Have to Select an Agent Account for Withdraw",
+      ""
+    );
+  }
+
+  if (!senderWallet || !receiverWallet) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Sender or receiver wallet not found",
+      ""
+    );
+  }
+
+  if (senderWallet.balance < amount) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance", "");
+  }
+
+  // Update balances
+  const senderBefore = senderWallet?.balance;
+  const receiverBefore = receiverWallet?.balance;
+
+  senderWallet.balance -= amount;
+  receiverWallet.balance += amount;
+
+  await senderWallet.save();
+  await receiverWallet.save();
+
+  // Create sender transaction
+  const senderTransaction = await Transaction.create({
+    transactionId: generateTransactionReference(),
+    type: TransactionType.DEPOSIT,
+    amount,
+    fee: 0,
+    totalAmount: amount,
+    status: TransactionStatus.COMPLETED,
+    senderEmail,
+    senderWalletId: senderWallet?._id,
+    receiverEmail,
+    receiverWalletId: receiverWallet?._id,
+    senderBalanceBefore: senderBefore,
+    senderBalanceAfter: senderWallet?.balance,
+    receiverBalanceBefore: receiverBefore,
+    receiverBalanceAfter: receiverWallet?.balance,
+  });
+
+  // Create receiver transaction
+  const receiverTransaction = await Transaction.create({
+    transactionId: generateTransactionReference(),
+    type: TransactionType.CASH_IN,
+    amount,
+    fee: 0,
+    totalAmount: amount,
+    status: TransactionStatus.COMPLETED,
+    senderEmail,
+    senderWalletId: senderWallet?._id,
+    receiverEmail,
+    receiverWalletId: receiverWallet?._id,
+    senderBalanceBefore: senderBefore,
+    senderBalanceAfter: senderWallet?.balance,
+    receiverBalanceBefore: receiverBefore,
+    receiverBalanceAfter: receiverWallet?.balance,
+  });
+
+  return senderTransaction;
 };
 
 const sendMoneyFromDB = async (
@@ -151,32 +248,75 @@ const sendMoneyFromDB = async (
   return { senderTransaction, receiverTransaction };
 };
 
+// const getTransactionHistoryFromDB = async (
+//   walletEmail: string,
+//   page: number,
+//   limit: number,
+//   filters: IFilters
+// ) => {
+//   // const { type, status, startDate, endDate } = filters;
+
+//   const skip = (page - 1) * limit;
+
+//   // Base condition: Only user's transactions
+//   const query: FilterQuery<ITransaction> = {
+//     $or: [{ senderEmail: walletEmail }, { receiverEmail: walletEmail }],
+//   };
+
+//   // Filter by type (DEPOSIT, WITHDRAW, TRANSFER)
+//   if (filters.type) {
+//     query.type = filters.type;
+//   }
+
+//   // Filter by status (PENDING, COMPLETED, FAILED)
+//   if (filters.status) {
+//     query.status = filters.status;
+//   }
+
+//   // Filter by date range
+//   if (filters.startDate || filters.endDate) {
+//     query.createdAt = {};
+//     if (filters.startDate) {
+//       query.createdAt.$gte = new Date(filters.startDate);
+//     }
+//     if (filters.endDate) {
+//       query.createdAt.$lte = new Date(filters.endDate);
+//     }
+//   }
+
+//   // Fetch paginated results & total count in parallel
+//   const [transactions, total] = await Promise.all([
+//     Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+
+//     Transaction.countDocuments(query),
+//   ]);
+
+//   return { transactions, total, page, limit };
+// };
+
 const getTransactionHistoryFromDB = async (
-  walletId: string,
+  walletEmail: string,
   page: number,
   limit: number,
-  filters: IFilters
+  filters: IFilters,
+  searchFilter: Record<string, any> = {}
 ) => {
-  // const { type, status, startDate, endDate } = filters;
-
   const skip = (page - 1) * limit;
 
   // Base condition: Only user's transactions
   const query: FilterQuery<ITransaction> = {
-    $or: [{ senderWalletId: walletId }, { receiverWalletId: walletId }],
+    $or: [{ senderEmail: walletEmail }, { receiverEmail: walletEmail }],
+    ...searchFilter, // ✅ merge here, not in filters
   };
 
-  // Filter by type (DEPOSIT, WITHDRAW, TRANSFER)
   if (filters.type) {
     query.type = filters.type;
   }
 
-  // Filter by status (PENDING, COMPLETED, FAILED)
   if (filters.status) {
     query.status = filters.status;
   }
 
-  // Filter by date range
   if (filters.startDate || filters.endDate) {
     query.createdAt = {};
     if (filters.startDate) {
@@ -187,15 +327,17 @@ const getTransactionHistoryFromDB = async (
     }
   }
 
-  // Fetch paginated results & total count in parallel
   const [transactions, total] = await Promise.all([
     Transaction.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
-
     Transaction.countDocuments(query),
   ]);
 
   return { transactions, total, page, limit };
 };
+
+
+
+
 
 const changeTransactionStatusIntoDB = async (
   id: string,

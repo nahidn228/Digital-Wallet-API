@@ -10,13 +10,15 @@ import { TransactionStatus, TransactionType } from "./transaction.constrain";
 
 /* 1. Deposit */
 const depositSchema = z.object({
-  userId: z.string(),
+  senderEmail: z.string(),
+  receiverEmail: z.string(),
   amount: z.number().positive("Amount must be greater than 0"),
 });
 
 /* 2. Withdraw */
 const withdrawSchema = z.object({
-  userId: z.string(),
+  senderEmail: z.string(),
+  receiverEmail: z.string(),
   amount: z.number().positive("Amount must be greater than 0"),
 });
 

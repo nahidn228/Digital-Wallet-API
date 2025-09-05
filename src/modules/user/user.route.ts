@@ -15,22 +15,18 @@ import { UserRole } from "./user.constrain";
 const userRouts = Router();
 
 userRouts.get("/me", auth(Object.values(UserRole)), getSingleUsers);
-userRouts.put(
+userRouts.patch(
   "/:email",
   auth(Object.values(UserRole)),
-  validateRequest(UserZodSchema.updateUserSchema),
+  // validateRequest(UserZodSchema.updateUserSchema),
   updateUser
 );
 
-userRouts.get(
-  "/profile/:userId",
-  auth([UserRole.Admin]),
-  getUserById
-);
+userRouts.get("/profile/:userId", auth([UserRole.Admin]), getUserById);
 
-userRouts.patch(
+userRouts.put(
   "/status/:userId",
-  validateRequest(UserZodSchema.updateUserSchema),
+  // validateRequest(UserZodSchema.updateUserSchema),
   auth([UserRole.Admin]),
   updateUserStatus
 );

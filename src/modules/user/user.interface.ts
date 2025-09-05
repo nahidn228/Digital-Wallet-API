@@ -16,6 +16,21 @@ export interface IUser {
   createdAt?: Date;
   updatedAt?: Date;
 }
+export interface IUpdateUser {
+  name?: string;
+  email?: string;
+  phone?: string;
+  password?: string;
+  role?: UserRole;
+  profilePicture?: string;
+  nid?: string;
+  address?: string;
+  dateOfBirth?: Date;
+  isVerified?: boolean;
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 export interface IUserProfile {
   _id?: mongoose.Types.ObjectId;

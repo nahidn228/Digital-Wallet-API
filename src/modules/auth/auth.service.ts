@@ -76,6 +76,7 @@ const changePasswordIntoDB = async (
 
   if (!isUserExist) {
     throw new AppError(status.NOT_FOUND, "User Not Found", "");
+    return;
   }
 
   const storedPassword = isUserExist.password;
@@ -83,6 +84,7 @@ const changePasswordIntoDB = async (
 
   if (!isPasswordMatched) {
     throw new AppError(Number(status[403]), "Password Not Matched", "");
+    
   }
 
   isUserExist.password = await bcrypt.hash(

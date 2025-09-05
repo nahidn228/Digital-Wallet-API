@@ -34,11 +34,13 @@ const loginUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, v
     res.cookie("accessToken", data.accessToken, {
         secure: config_1.default.node_env !== "development",
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: "none",
     });
     res.cookie("refreshToken", data.refreshToken, {
         secure: config_1.default.node_env !== "development",
         httpOnly: true,
+        // secure: true,
+        sameSite: "none",
     });
     (0, SendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,

@@ -12,8 +12,12 @@ import { TransactionServices } from "./transaction.service";
 import { IFilters } from "./transaction.interface";
 
 const deposit = catchAsync(async (req: Request, res: Response) => {
-  const { userId, amount } = req.body;
-  const transaction = await TransactionServices.depositIntoDB(userId, amount);
+  const { senderEmail, receiverEmail, amount } = req.body;
+  const transaction = await TransactionServices.depositIntoDB(
+    senderEmail,
+    receiverEmail,
+    amount
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -24,8 +28,12 @@ const deposit = catchAsync(async (req: Request, res: Response) => {
 });
 
 const withdraw = catchAsync(async (req: Request, res: Response) => {
-  const { userId, amount } = req.body;
-  const transaction = await TransactionServices.withdrawFromDB(userId, amount);
+  const { senderEmail, receiverEmail, amount } = req.body;
+  const transaction = await TransactionServices.withdrawFromDB(
+    senderEmail,
+    receiverEmail,
+    amount
+  );
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -43,7 +51,7 @@ const sendMoney = catchAsync(async (req: Request, res: Response) => {
     receiverEmail,
     amount
   );
-  
+
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -52,9 +60,50 @@ const sendMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// const getTransactionHistory = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const { walletEmail } = req.params;
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 10;
+
+//     const filters: IFilters = {
+//       type: req.query.type as string,
+//     };
+
+//     let searchFilter = {};
+//     if (req.query.search) {
+//       const searchText = req.query.search.toString();
+//       searchFilter = {
+//         $or: [
+//           { transactionId: { $regex: searchText, $options: "i" } },
+//           { type: { $regex: searchText, $options: "i" } },
+//           { status: { $regex: searchText, $options: "i" } },
+//           { senderEmail: { $regex: searchText, $options: "i" } },
+//           { receiverEmail: { $regex: searchText, $options: "i" } },
+//         ],
+//       };
+//     }
+
+//     const transactionHistory =
+//       await TransactionServices.getTransactionHistoryFromDB(
+//         walletEmail,
+//         page,
+//         limit,
+//         { ...filters, ...searchFilter }
+//       );
+
+//     sendResponse(res, {
+//       statusCode: httpStatus.OK,
+//       success: true,
+//       message: "Transaction history retrieved",
+//       data: transactionHistory,
+//     });
+//   }
+// );
+
 const getTransactionHistory = catchAsync(
   async (req: Request, res: Response) => {
-    const { walletId } = req.params;
+    const { walletEmail } = req.params;
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
 
@@ -65,12 +114,27 @@ const getTransactionHistory = catchAsync(
       endDate: req.query.endDate as string,
     };
 
+    let searchFilter: Record<string, any> = {};
+    if (req.query.search) {
+      const searchText = req.query.search.toString();
+      searchFilter = {
+        $or: [
+          { transactionId: { $regex: searchText, $options: "i" } },
+          { type: { $regex: searchText, $options: "i" } },
+          { status: { $regex: searchText, $options: "i" } },
+          { senderEmail: { $regex: searchText, $options: "i" } },
+          { receiverEmail: { $regex: searchText, $options: "i" } },
+        ],
+      };
+    }
+
     const transactionHistory =
       await TransactionServices.getTransactionHistoryFromDB(
-        walletId,
+        walletEmail,
         page,
         limit,
-        filters
+        filters,
+        searchFilter
       );
 
     sendResponse(res, {

@@ -18,8 +18,8 @@ const catchAsync_1 = require("../../utils/catchAsync");
 const SendResponse_1 = require("../../utils/SendResponse");
 const transaction_service_1 = require("./transaction.service");
 const deposit = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId, amount } = req.body;
-    const transaction = yield transaction_service_1.TransactionServices.depositIntoDB(userId, amount);
+    const { senderEmail, receiverEmail, amount } = req.body;
+    const transaction = yield transaction_service_1.TransactionServices.depositIntoDB(senderEmail, receiverEmail, amount);
     (0, SendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -28,8 +28,8 @@ const deposit = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, voi
     });
 }));
 const withdraw = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId, amount } = req.body;
-    const transaction = yield transaction_service_1.TransactionServices.withdrawFromDB(userId, amount);
+    const { senderEmail, receiverEmail, amount } = req.body;
+    const transaction = yield transaction_service_1.TransactionServices.withdrawFromDB(senderEmail, receiverEmail, amount);
     (0, SendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -38,8 +38,8 @@ const withdraw = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, vo
     });
 }));
 const sendMoney = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { senderId, receiverId, amount } = req.body;
-    const transaction = yield transaction_service_1.TransactionServices.sendMoneyFromDB(senderId, receiverId, amount);
+    const { senderEmail, receiverEmail, amount } = req.body;
+    const transaction = yield transaction_service_1.TransactionServices.sendMoneyFromDB(senderEmail, receiverEmail, amount);
     (0, SendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -47,8 +47,44 @@ const sendMoney = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, v
         data: transaction,
     });
 }));
+// const getTransactionHistory = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const { walletEmail } = req.params;
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 10;
+//     const filters: IFilters = {
+//       type: req.query.type as string,
+//     };
+//     let searchFilter = {};
+//     if (req.query.search) {
+//       const searchText = req.query.search.toString();
+//       searchFilter = {
+//         $or: [
+//           { transactionId: { $regex: searchText, $options: "i" } },
+//           { type: { $regex: searchText, $options: "i" } },
+//           { status: { $regex: searchText, $options: "i" } },
+//           { senderEmail: { $regex: searchText, $options: "i" } },
+//           { receiverEmail: { $regex: searchText, $options: "i" } },
+//         ],
+//       };
+//     }
+//     const transactionHistory =
+//       await TransactionServices.getTransactionHistoryFromDB(
+//         walletEmail,
+//         page,
+//         limit,
+//         { ...filters, ...searchFilter }
+//       );
+//     sendResponse(res, {
+//       statusCode: httpStatus.OK,
+//       success: true,
+//       message: "Transaction history retrieved",
+//       data: transactionHistory,
+//     });
+//   }
+// );
 const getTransactionHistory = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { walletId } = req.params;
+    const { walletEmail } = req.params;
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
     const filters = {
@@ -57,7 +93,20 @@ const getTransactionHistory = (0, catchAsync_1.catchAsync)((req, res) => __await
         startDate: req.query.startDate,
         endDate: req.query.endDate,
     };
-    const transactionHistory = yield transaction_service_1.TransactionServices.getTransactionHistoryFromDB(walletId, page, limit, filters);
+    let searchFilter = {};
+    if (req.query.search) {
+        const searchText = req.query.search.toString();
+        searchFilter = {
+            $or: [
+                { transactionId: { $regex: searchText, $options: "i" } },
+                { type: { $regex: searchText, $options: "i" } },
+                { status: { $regex: searchText, $options: "i" } },
+                { senderEmail: { $regex: searchText, $options: "i" } },
+                { receiverEmail: { $regex: searchText, $options: "i" } },
+            ],
+        };
+    }
+    const transactionHistory = yield transaction_service_1.TransactionServices.getTransactionHistoryFromDB(walletEmail, page, limit, filters, searchFilter);
     (0, SendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
         success: true,

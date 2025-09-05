@@ -40,4 +40,7 @@ export interface IFilters {
   status?: string;
   startDate?: string;
   endDate?: string;
+  email?: string;
+  createdAt?: string;
+  $or?: Record<string, any>[];
 }

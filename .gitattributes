@@ -1,0 +1,12 @@
+# TypeScript files
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+
+# SQL files  
+*.sql linguist-language=SQL
+*.psql linguist-language=SQL
+
+# Ensure these aren't marked as generated
+*.ts linguist-generated=false
+*.tsx linguist-generated=false
+*.sql linguist-generated=false
