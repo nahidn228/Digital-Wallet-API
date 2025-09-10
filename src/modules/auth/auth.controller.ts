@@ -24,15 +24,17 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   const data = await AuthServices.loginUserIntoDB(payload);
 
   res.cookie("accessToken", data.accessToken, {
-    secure: config.node_env !== "development",
+    // secure: config.node_env !== "development",
     httpOnly: true,
+    secure: true,
     sameSite: "none",
   });
 
   res.cookie("refreshToken", data.refreshToken, {
-    secure: config.node_env !== "development",
+    // secure: config.node_env !== "development",
     httpOnly: true,
-    // secure: true,
+
+    secure: true,
     sameSite: "none",
   });
 
